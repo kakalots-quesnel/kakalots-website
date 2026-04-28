@@ -1555,7 +1555,6 @@ function OrderPage() {
       tax: taxAmount,
       total: grandTotal,
       special_instructions: form.instructions,
-      payment_method: orderType === 'delivery' ? form.payment_method : 'in_store',
       status: 'pending'
     }).select().single();
     setSubmitting(false);
