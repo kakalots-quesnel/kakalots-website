@@ -336,6 +336,9 @@
       <div class="nav-item" onclick="showPage('hours')" id="nav-hours">
         <span class="nav-icon">🕐</span> Hours
       </div>
+      <div class="nav-item" onclick="showPage('reservations')" id="nav-reservations">
+        <span class="nav-icon">📅</span> Reservations
+      </div>
       <div class="nav-item" onclick="showPage('promos')" id="nav-promos">
         <span class="nav-icon">🏷️</span> Promo Codes
       </div>
@@ -415,6 +418,24 @@
         <button class="btn btn-primary" onclick="saveHours()">Save Hours</button>
       </div>
       <div class="hours-grid" id="hours-list"></div>
+    </div>
+
+    <!-- RESERVATIONS -->
+    <div class="page" id="page-reservations">
+      <div class="page-header">
+        <div class="page-title">Reservations</div>
+        <div id="reservations-count" style="font-size:13px;color:var(--text2);font-family:var(--mono)"></div>
+      </div>
+      <div class="orders-tabs">
+        <div class="order-tab active" onclick="filterReservations('pending')" id="rtab-pending">
+          Pending <span class="badge" id="rbadge-pending">0</span>
+        </div>
+        <div class="order-tab" onclick="filterReservations('confirmed')" id="rtab-confirmed">Confirmed</div>
+        <div class="order-tab" onclick="filterReservations('all')" id="rtab-all">All</div>
+      </div>
+      <div class="orders-grid" id="reservations-container">
+        <div class="empty-state"><div class="big">📅</div>No reservations yet</div>
+      </div>
     </div>
 
     <!-- PROMOS -->
@@ -789,6 +810,7 @@ function showPage(page) {
   if (page === 'history') loadHistory();
   if (page === 'settings') loadSettingsPage();
   if (page === 'promos') loadPromos();
+  if (page === 'reservations') loadReservations();
 }
 
 function goToOrders() {
@@ -888,7 +910,10 @@ function renderOrderCard(order) {
           <div class="order-num">#${order.order_number}</div>
           <div class="order-meta">${time}</div>
         </div>
-        <span class="order-type-badge ${order.order_type}">${order.order_type.toUpperCase()}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="order-type-badge ${order.order_type}">${order.order_type === 'pickup' ? '🥡 PICKUP' : '🛵 DELIVERY'}</span>
+          <span style="font-size:11px;color:var(--text2);font-family:var(--mono)">${order.order_type === 'pickup' ? 'Pay at counter' : 'Pay at door'}</span>
+        </div>
       </div>
       <div class="order-customer">
         <div class="order-customer-name">${order.customer_name}</div>
@@ -1320,6 +1345,96 @@ async function saveTaxSettings() {
   if (isNaN(rate) || rate < 0 || rate > 100) return toast('Enter a valid tax rate (0-100)', 'error');
   await setSetting('tax_rate', rate.toString());
   toast(`Tax rate set to ${rate}%`, 'success');
+}
+
+// ============ RESERVATIONS ============
+let allReservations = [];
+let currentResvFilter = 'pending';
+
+async function loadReservations() {
+  const { data } = await db.from('reservations').select('*').order('reservation_date', { ascending: true }).order('reservation_time', { ascending: true });
+  allReservations = data || [];
+  renderReservations();
+  updateResvBadges();
+}
+
+function filterReservations(filter) {
+  currentResvFilter = filter;
+  document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('rtab-' + filter).classList.add('active');
+  renderReservations();
+}
+
+function updateResvBadges() {
+  const pending = allReservations.filter(r => r.status === 'pending').length;
+  document.getElementById('rbadge-pending').textContent = pending;
+}
+
+function renderReservations() {
+  const container = document.getElementById('reservations-container');
+  let filtered = allReservations;
+  if (currentResvFilter !== 'all') {
+    filtered = allReservations.filter(r => r.status === currentResvFilter);
+  }
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="big">📅</div>No reservations in this view</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(r => {
+    const date = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const [h, m] = r.reservation_time.split(':');
+    const hr = parseInt(h);
+    const time = `${hr > 12 ? hr - 12 : hr}:${m}${hr >= 12 ? 'pm' : 'am'}`;
+    const statusColors = { pending: 'var(--yellow)', confirmed: 'var(--green)', declined: 'var(--red)', cancelled: 'var(--text2)' };
+    const created = new Date(r.created_at).toLocaleDateString('en-CA');
+    return `
+      <div class="order-card ${r.status}" style="border-left-color:${statusColors[r.status]}">
+        <div class="order-top">
+          <div>
+            <div class="order-num" style="font-size:15px">📅 ${date} at ${time}</div>
+            <div class="order-meta">Requested ${created}</div>
+          </div>
+          <span class="status-pill ${r.status}">${r.status}</span>
+        </div>
+        <div class="order-customer">
+          <div class="order-customer-name">${r.customer_name}</div>
+          <div class="order-customer-phone">${r.customer_phone}</div>
+          ${r.customer_email ? `<div class="order-address">${r.customer_email}</div>` : ''}
+        </div>
+        <div class="order-items" style="padding:10px 12px">
+          <div style="font-size:13px;display:flex;gap:24px">
+            <span>👥 Party of <strong>${r.party_size}</strong></span>
+          </div>
+          ${r.special_requests ? `<div style="font-size:12px;color:var(--text2);margin-top:6px">📝 ${r.special_requests}</div>` : ''}
+        </div>
+        <div class="order-actions">
+          ${r.status === 'pending' ? `
+            <button class="btn-accept" onclick="updateReservation('${r.id}', 'confirmed')">✓ Confirm</button>
+            <button class="btn-reject" onclick="updateReservation('${r.id}', 'declined')">✕ Decline</button>
+          ` : `<span class="status-pill ${r.status}">${r.status}</span>`}
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="deleteReservation('${r.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updateReservation(id, status) {
+  await db.from('reservations').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+  const idx = allReservations.findIndex(r => r.id === id);
+  if (idx !== -1) allReservations[idx].status = status;
+  renderReservations();
+  updateResvBadges();
+  toast(`Reservation ${status}`, 'success');
+}
+
+async function deleteReservation(id) {
+  if (!confirm('Delete this reservation?')) return;
+  await db.from('reservations').delete().eq('id', id);
+  allReservations = allReservations.filter(r => r.id !== id);
+  renderReservations();
+  updateResvBadges();
+  toast('Reservation deleted', 'success');
 }
 
 // ============ ACCEPT / REJECT MODALS ============
