@@ -1353,7 +1353,15 @@ async function confirmAccept() {
   // Send confirmation email using full order data
   const fullOrder = allOrders.find(o => o.id === order.id);
   if (fullOrder && fullOrder.customer_email) {
-    await sendAcceptEmail(fullOrder, estTime);
+    toast('Sending confirmation email...', 'success');
+    const result = await sendAcceptEmail(fullOrder, estTime);
+    if (result && result.error) {
+      toast('Email error: ' + result.error, 'error');
+    } else {
+      toast('Confirmation email sent!', 'success');
+    }
+  } else {
+    toast('No email address on order — skipping email', 'error');
   }
 }
 
@@ -1394,12 +1402,18 @@ async function confirmReject() {
 
 async function sendAcceptEmail(order, estTime) {
   try {
-    await fetch(EDGE_FUNCTION_URL, {
+    const res = await fetch(EDGE_FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
       body: JSON.stringify({ type: 'accept', order, estTime })
     });
-  } catch(e) { console.error('Email send failed:', e); }
+    const data = await res.json();
+    console.log('Email response:', res.status, data);
+    return data;
+  } catch(e) {
+    console.error('Email send failed:', e);
+    return { error: e.message };
+  }
 }
 
 async function sendRejectEmail(order, reason) {
