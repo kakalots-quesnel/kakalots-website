@@ -1580,6 +1580,7 @@ function OrderPage() {
     const { data, error } = await db.from('orders').insert({
       customer_name: form.name,
       customer_phone: form.phone,
+      customer_email: form.email || null,
       order_type: orderType,
       delivery_address: orderType === 'delivery' ? form.address : null,
       delivery_postal_code: orderType === 'delivery' ? form.postal : null,
@@ -1632,7 +1633,7 @@ function OrderPage() {
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
         <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
-        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', address: '', postal: '', instructions: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); }}>Place Another Order</button>
+        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', instructions: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); }}>Place Another Order</button>
       </div>
     </>
   );
@@ -1860,6 +1861,12 @@ function OrderPage() {
                   style={{ width: '100%', padding: '11px 14px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.95rem', outline: 'none' }} />
               </div>
             ))}
+            <div>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Email Address <span style={{ color: '#aaa', fontWeight: '400', textTransform: 'none' }}>(for order confirmation)</span></label>
+              <input type="email" placeholder="your@email.com" value={form.email || ''}
+                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                style={{ width: '100%', padding: '11px 14px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.95rem', outline: 'none' }} />
+            </div>
             {orderType === 'delivery' && (
               <>
                 <div>
