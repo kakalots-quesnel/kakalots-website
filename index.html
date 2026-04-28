@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -25,942 +24,939 @@
       min-height: 100vh;
     }
 
-```
-/* ── ANIMATIONS ── */
-@keyframes floatUp {
-  0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
-  12%  { opacity: 0.35; }
-  88%  { opacity: 0.18; }
-  100% { transform: translateY(-800px) scale(0.4) rotate(200deg); opacity: 0; }
-}
-@keyframes sway {
-  0%, 100% { left: var(--sx); }
-  50%       { left: calc(var(--sx) + 20px); }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.hero-sparkles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.sparkle {
-  position: absolute;
-  bottom: -20px;
-  opacity: 0;
-  animation: floatUp linear infinite;
-  font-size: 28px;
-  line-height: 1;
-  user-select: none;
-  pointer-events: none;
-}
-.sparkle.sm { font-size: 18px; }
-.sparkle.lg { font-size: 40px; }
-.sparkle.xl { font-size: 52px; }
-.hero { position: relative; }
-.hero > *:not(.hero-sparkles) { position: relative; z-index: 1; }
-.hero-title-shimmer {
-  background: linear-gradient(90deg, #1a1a1a 40%, #C8960C 50%, #1a1a1a 60%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 4s linear infinite;
-}
-.page-fade {
-  animation: pageFadeIn 0.35s ease forwards;
-}
-@keyframes pageFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.section-animate.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+    /* ── ANIMATIONS ── */
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
+      12%  { opacity: 0.35; }
+      88%  { opacity: 0.18; }
+      100% { transform: translateY(-800px) scale(0.4) rotate(200deg); opacity: 0; }
+    }
+    @keyframes sway {
+      0%, 100% { left: var(--sx); }
+      50%       { left: calc(var(--sx) + 20px); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .sparkle {
+      position: absolute;
+      bottom: -20px;
+      opacity: 0;
+      animation: floatUp linear infinite;
+      font-size: 28px;
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+    .sparkle.sm { font-size: 18px; }
+    .sparkle.lg { font-size: 40px; }
+    .sparkle.xl { font-size: 52px; }
+    .hero { position: relative; }
+    .hero > *:not(.hero-sparkles) { position: relative; z-index: 1; }
+    .hero-title-shimmer {
+      background: linear-gradient(90deg, #1a1a1a 40%, #C8960C 50%, #1a1a1a 60%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s linear infinite;
+    }
+    .page-fade {
+      animation: pageFadeIn 0.35s ease forwards;
+    }
+    @keyframes pageFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .section-animate.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-/* ── GREEK KEY BORDER ── */
-.greek-border {
-  width: 100%;
-  height: 22px;
-  background-color: #da0908;
-  background-image:
-    repeating-linear-gradient(90deg,
-      transparent 0px, transparent 3px,
-      #C8960C 3px, #C8960C 6px,
-      transparent 6px, transparent 9px
-    );
-  background-size: 22px 22px;
-  position: relative;
-  overflow: hidden;
-}
-.greek-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='22'%3E%3Crect fill='none' x='0' y='0' width='44' height='22'/%3E%3Cpath fill='%23C8960C' d='M0 0h4v4H0zm4 0h4v4H4V4h12v4H4V4zm16 0h4v4h-4zm4 0h4v4h-4V4h12v4h-12V4zm16 0h4v4h-4zm4 0h4v4h-4V4h4v14h-4V4zm-4 14h4v4h-4zm-4 0h-4v4h4v-4zm-12 0h4v4h-4zm-4 0H0v4h20v-4zm20 0h-4v4h4v-4z'/%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-size: 44px 22px;
-}
+    /* ── GREEK KEY BORDER ── */
+    .greek-border {
+      width: 100%;
+      height: 22px;
+      background-color: #da0908;
+      background-image:
+        repeating-linear-gradient(90deg,
+          transparent 0px, transparent 3px,
+          #C8960C 3px, #C8960C 6px,
+          transparent 6px, transparent 9px
+        );
+      background-size: 22px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .greek-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='22'%3E%3Crect fill='none' x='0' y='0' width='44' height='22'/%3E%3Cpath fill='%23C8960C' d='M0 0h4v4H0zm4 0h4v4H4V4h12v4H4V4zm16 0h4v4h-4zm4 0h4v4h-4V4h12v4h-12V4zm16 0h4v4h-4zm4 0h4v4h-4V4h4v14h-4V4zm-4 14h4v4h-4zm-4 0h-4v4h4v-4zm-12 0h4v4h-4zm-4 0H0v4h20v-4zm20 0h-4v4h4v-4z'/%3E%3C/svg%3E");
+      background-repeat: repeat-x;
+      background-size: 44px 22px;
+    }
 
-/* ── NAV ── */
-.site-nav {
-  background: #fff;
-  border-bottom: 3px solid #da0908;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 12px rgba(196,18,48,0.10);
-}
-.nav-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  height: 64px;
-}
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-.nav-logo-text {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: 1.4rem;
-  color: #da0908;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-.nav-logo-sub {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 0.75rem;
-  color: #C8960C;
-  display: block;
-}
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  list-style: none;
-}
-.nav-links a {
-  text-decoration: none;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #1a1a1a;
-  padding: 8px 14px;
-  border-radius: 3px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: color 0.18s, background 0.18s;
-}
-.nav-links a:hover, .nav-links a.active {
-  color: #da0908;
-  background: rgba(196,18,48,0.06);
-}
-.nav-order-btn {
-  background: #da0908 !important;
-  color: #fff !important;
-  border-radius: 4px !important;
-  padding: 10px 18px !important;
-}
-.nav-order-btn:hover {
-  background: #b50807 !important;
-  color: #fff !important;
-}
-.hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  cursor: pointer;
-  padding: 8px;
-  background: none;
-  border: none;
-}
-.hamburger span {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: #da0908;
-  transition: all 0.3s;
-}
-.mobile-menu {
-  display: none;
-  background: #fff;
-  border-top: 1px solid #f0e0e0;
-  padding: 12px 0;
-}
-.mobile-menu.open { display: block; }
-.mobile-menu a {
-  display: block;
-  padding: 12px 24px;
-  text-decoration: none;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #1a1a1a;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid #f9f0f0;
-}
-.mobile-menu a:hover { color: #da0908; background: #fdf5f5; }
-.mobile-order {
-  margin: 12px 24px 4px;
-  display: block;
-  background: #da0908;
-  color: #fff !important;
-  text-align: center;
-  border-radius: 4px;
-  padding: 12px 18px !important;
-}
+    /* ── NAV ── */
+    .site-nav {
+      background: #fff;
+      border-bottom: 3px solid #da0908;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(196,18,48,0.10);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: #da0908;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .nav-logo-sub {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 0.75rem;
+      color: #C8960C;
+      display: block;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      padding: 8px 14px;
+      border-radius: 3px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.18s, background 0.18s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #da0908;
+      background: rgba(196,18,48,0.06);
+    }
+    .nav-order-btn {
+      background: #da0908 !important;
+      color: #fff !important;
+      border-radius: 4px !important;
+      padding: 10px 18px !important;
+    }
+    .nav-order-btn:hover {
+      background: #b50807 !important;
+      color: #fff !important;
+    }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      background: none;
+      border: none;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #da0908;
+      transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none;
+      background: #fff;
+      border-top: 1px solid #f0e0e0;
+      padding: 12px 0;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: block;
+      padding: 12px 24px;
+      text-decoration: none;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #f9f0f0;
+    }
+    .mobile-menu a:hover { color: #da0908; background: #fdf5f5; }
+    .mobile-order {
+      margin: 12px 24px 4px;
+      display: block;
+      background: #da0908;
+      color: #fff !important;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px 18px !important;
+    }
 
-/* ── LANTERN SVG ── */
-.lantern-svg { width: auto; height: auto; }
+    /* ── LANTERN SVG ── */
+    .lantern-svg { width: auto; height: auto; }
 
-/* ── HERO ── */
-.hero {
-  background: #fff;
-  padding: 60px 24px 50px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.hero-top-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 32px;
-  margin-bottom: 20px;
-}
-.hero-center { flex: 1; max-width: 600px; }
-.hero-welcome {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: #1a1a1a;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: clamp(2.8rem, 8vw, 5.5rem);
-  color: #1a1a1a;
-  line-height: 0.95;
-  letter-spacing: 0.02em;
-  margin-bottom: 4px;
-}
-.hero-restaurant {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: clamp(1rem, 3vw, 1.6rem);
-  color: #1a1a1a;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-}
-.hero-chinese {
-  font-family: 'Noto Serif SC', serif;
-  font-size: clamp(1.5rem, 5vw, 2.8rem);
-  color: #da0908;
-  font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: 0.1em;
-}
-.hero-tagline {
-  font-family: 'Dancing Script', cursive;
-  font-size: clamp(1.5rem, 4vw, 2.4rem);
-  color: #da0908;
-  font-weight: 900;
-  margin-bottom: 28px;
-  -webkit-text-stroke: 0.5px #da0908;
-}
+    /* ── HERO ── */
+    .hero {
+      background: #fff;
+      padding: 60px 24px 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-top-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 20px;
+    }
+    .hero-center { flex: 1; max-width: 600px; }
+    .hero-welcome {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #1a1a1a;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      color: #1a1a1a;
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .hero-restaurant {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(1rem, 3vw, 1.6rem);
+      color: #1a1a1a;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .hero-chinese {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(1.5rem, 5vw, 2.8rem);
+      color: #da0908;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+    .hero-tagline {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      color: #da0908;
+      font-weight: 900;
+      margin-bottom: 28px;
+      -webkit-text-stroke: 0.5px #da0908;
+    }
 
-/* Center panels row */
-.hero-panels-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(8px, 2vw, 20px);
-  margin: 0 auto 36px;
-  max-width: 860px;
-  width: 100%;
-  padding: 0 16px;
-}
-.hero-side-banner {
-  flex: 0 0 auto;
-  height: clamp(180px, 30vw, 340px);
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
-.hero-center-image {
-  flex: 1 1 auto;
-  max-width: 420px;
-  min-width: 0;
-  aspect-ratio: 1 / 1;
-  border: 4px solid #da0908;
-  background: #f9f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.hero-image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: repeating-linear-gradient(
-    45deg,
-    #f9f0f0,
-    #f9f0f0 8px,
-    #f3e0e0 8px,
-    #f3e0e0 16px
-  );
-  color: #da0908;
-  font-size: 0.7rem;
-  font-family: monospace;
-  text-align: center;
-  padding: 12px;
-  gap: 6px;
-}
-.hero-image-placeholder svg { opacity: 0.4; }
+    /* Center panels row */
+    .hero-panels-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(8px, 2vw, 20px);
+      margin: 0 auto 36px;
+      max-width: 860px;
+      width: 100%;
+      padding: 0 16px;
+    }
+    .hero-side-banner {
+      flex: 0 0 auto;
+      height: clamp(180px, 30vw, 340px);
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .hero-center-image {
+      flex: 1 1 auto;
+      max-width: 420px;
+      min-width: 0;
+      aspect-ratio: 1 / 1;
+      border: 4px solid #da0908;
+      background: #f9f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .hero-image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: repeating-linear-gradient(
+        45deg,
+        #f9f0f0,
+        #f9f0f0 8px,
+        #f3e0e0 8px,
+        #f3e0e0 16px
+      );
+      color: #da0908;
+      font-size: 0.7rem;
+      font-family: monospace;
+      text-align: center;
+      padding: 12px;
+      gap: 6px;
+    }
+    .hero-image-placeholder svg { opacity: 0.4; }
 
-/* Specials row */
-.hero-specials {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 36px;
-}
-.hero-special-box {
-  border: 2px solid #C8960C;
-  padding: 10px 22px;
-  text-align: center;
-  background: #fff;
-}
-.special-title {
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #da0908;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-.special-detail {
-  font-family: 'Lato', sans-serif;
-  font-size: 0.82rem;
-  color: #555;
-}
+    /* Specials row */
+    .hero-specials {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .hero-special-box {
+      border: 2px solid #C8960C;
+      padding: 10px 22px;
+      text-align: center;
+      background: #fff;
+    }
+    .special-title {
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #da0908;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .special-detail {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.82rem;
+      color: #555;
+    }
 
-/* CTA buttons */
-.hero-ctas {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-.btn-primary {
-  display: inline-block;
-  background: #da0908;
-  color: #fff;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 14px 32px;
-  border-radius: 3px;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: background 0.18s, transform 0.12s;
-}
-.btn-primary:hover { background: #b50807; transform: translateY(-1px); }
-.btn-secondary {
-  display: inline-block;
-  background: #fff;
-  color: #da0908;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 13px 32px;
-  border-radius: 3px;
-  text-decoration: none;
-  border: 2px solid #da0908;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-.btn-secondary:hover { background: #da0908; color: #fff; }
-.btn-gold {
-  display: inline-block;
-  background: #C8960C;
-  color: #fff;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 14px 32px;
-  border-radius: 3px;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: background 0.18s;
-}
-.btn-gold:hover { background: #a67b0a; }
+    /* CTA buttons */
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-block;
+      background: #da0908;
+      color: #fff;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      border-radius: 3px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.12s;
+    }
+    .btn-primary:hover { background: #b50807; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-block;
+      background: #fff;
+      color: #da0908;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 13px 32px;
+      border-radius: 3px;
+      text-decoration: none;
+      border: 2px solid #da0908;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-secondary:hover { background: #da0908; color: #fff; }
+    .btn-gold {
+      display: inline-block;
+      background: #C8960C;
+      color: #fff;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      border-radius: 3px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .btn-gold:hover { background: #a67b0a; }
 
-/* ── SECTION WRAPPER ── */
-.section {
-  padding: 64px 24px;
-}
-.section-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  color: #1a1a1a;
-  text-align: center;
-  margin-bottom: 8px;
-}
-.section-chinese {
-  font-family: 'Noto Serif SC', serif;
-  color: #da0908;
-  font-size: 1.1rem;
-  text-align: center;
-  margin-bottom: 12px;
-}
-.section-divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 44px;
-}
-.divider-line {
-  height: 2px;
-  width: 60px;
-  background: #C8960C;
-}
-.divider-icon {
-  color: #da0908;
-  font-size: 1.2rem;
-}
+    /* ── SECTION WRAPPER ── */
+    .section {
+      padding: 64px 24px;
+    }
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      color: #1a1a1a;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .section-chinese {
+      font-family: 'Noto Serif SC', serif;
+      color: #da0908;
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 44px;
+    }
+    .divider-line {
+      height: 2px;
+      width: 60px;
+      background: #C8960C;
+    }
+    .divider-icon {
+      color: #da0908;
+      font-size: 1.2rem;
+    }
 
-/* ── FEATURES STRIP ── */
-.features-strip {
-  background: #1a0a00;
-  padding: 40px 24px;
-}
-.features-grid {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-}
-.feature-item {
-  text-align: center;
-  color: #f5e6d0;
-}
-.feature-icon {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  display: block;
-}
-.feature-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 4px;
-  letter-spacing: 0.04em;
-  color: #C8960C;
-}
-.feature-desc {
-  font-size: 0.82rem;
-  opacity: 0.85;
-  line-height: 1.5;
-}
+    /* ── FEATURES STRIP ── */
+    .features-strip {
+      background: #1a0a00;
+      padding: 40px 24px;
+    }
+    .features-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+    .feature-item {
+      text-align: center;
+      color: #f5e6d0;
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+      color: #C8960C;
+    }
+    .feature-desc {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
 
-/* ── ABOUT SECTION ── */
-.about-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 56px;
-  align-items: center;
-}
-.about-text p {
-  font-size: 1.05rem;
-  line-height: 1.85;
-  color: #333;
-  margin-bottom: 18px;
-}
-.about-text p:last-child { margin-bottom: 0; }
-.about-text blockquote {
-  border-left: 4px solid #da0908;
-  padding: 12px 20px;
-  margin: 24px 0;
-  font-family: 'Dancing Script', cursive;
-  font-size: 1.4rem;
-  color: #da0908;
-  background: #fdf5f5;
-}
-.about-image-stack {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.about-img {
-  width: 100%;
-  aspect-ratio: 3/4;
-  background: repeating-linear-gradient(
-    45deg, #f9f0f0, #f9f0f0 8px, #f0dfdf 8px, #f0dfdf 16px
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: monospace;
-  font-size: 0.65rem;
-  color: #da0908;
-  text-align: center;
-  padding: 12px;
-}
-.about-img.tall {
-  grid-row: span 2;
-  aspect-ratio: unset;
-}
-.menu-highlights {
-  background: #fdf5f5;
-  border: 1px solid #f0d0d0;
-  padding: 28px;
-  margin-top: 24px;
-}
-.menu-highlights h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #da0908;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.menu-list {
-  list-style: none;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 20px;
-}
-.menu-list li {
-  font-size: 0.9rem;
-  color: #333;
-  padding-left: 16px;
-  position: relative;
-  line-height: 1.4;
-}
-.menu-list li::before {
-  content: '✦';
-  position: absolute;
-  left: 0;
-  color: #C8960C;
-  font-size: 0.6rem;
-  top: 3px;
-}
+    /* ── ABOUT SECTION ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .about-text p {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: #333;
+      margin-bottom: 18px;
+    }
+    .about-text p:last-child { margin-bottom: 0; }
+    .about-text blockquote {
+      border-left: 4px solid #da0908;
+      padding: 12px 20px;
+      margin: 24px 0;
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.4rem;
+      color: #da0908;
+      background: #fdf5f5;
+    }
+    .about-image-stack {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .about-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: repeating-linear-gradient(
+        45deg, #f9f0f0, #f9f0f0 8px, #f0dfdf 8px, #f0dfdf 16px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: #da0908;
+      text-align: center;
+      padding: 12px;
+    }
+    .about-img.tall {
+      grid-row: span 2;
+      aspect-ratio: unset;
+    }
+    .menu-highlights {
+      background: #fdf5f5;
+      border: 1px solid #f0d0d0;
+      padding: 28px;
+      margin-top: 24px;
+    }
+    .menu-highlights h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #da0908;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .menu-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 20px;
+    }
+    .menu-list li {
+      font-size: 0.9rem;
+      color: #333;
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.4;
+    }
+    .menu-list li::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      color: #C8960C;
+      font-size: 0.6rem;
+      top: 3px;
+    }
 
-/* ── REVIEWS ── */
-.reviews-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  margin-top: 8px;
-}
-.review-card {
-  background: #fff;
-  border: 1px solid #f0d8d8;
-  padding: 24px;
-  position: relative;
-}
-.review-stars { color: #F4B400; font-size: 1rem; letter-spacing: 2px; margin-bottom: 10px; }
-.review-text { font-size: 0.92rem; color: #444; line-height: 1.75; margin-bottom: 14px; font-style: italic; }
-.review-author { font-weight: 700; font-size: 0.82rem; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.06em; }
-.review-date { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
-.review-google-badge {
-  position: absolute; top: 20px; right: 20px;
-  display: flex; align-items: center; gap: 5px;
-  font-size: 0.7rem; color: #888; font-weight: 700;
-}
-.google-g {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: linear-gradient(135deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%);
-  display: inline-block; flex-shrink: 0;
-}
-.overall-rating {
-  display: flex; align-items: center; gap: 16px;
-  background: #da0908; color: #fff;
-  padding: 20px 28px; margin-bottom: 32px;
-  flex-wrap: wrap; gap: 20px;
-}
-.rating-number { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; line-height: 1; }
-.rating-details { flex: 1; }
-.rating-stars { font-size: 1.3rem; color: #F4B400; letter-spacing: 3px; margin-bottom: 4px; }
-.rating-count { font-size: 0.85rem; opacity: 0.85; }
+    /* ── REVIEWS ── */
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 8px;
+    }
+    .review-card {
+      background: #fff;
+      border: 1px solid #f0d8d8;
+      padding: 24px;
+      position: relative;
+    }
+    .review-stars { color: #F4B400; font-size: 1rem; letter-spacing: 2px; margin-bottom: 10px; }
+    .review-text { font-size: 0.92rem; color: #444; line-height: 1.75; margin-bottom: 14px; font-style: italic; }
+    .review-author { font-weight: 700; font-size: 0.82rem; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.06em; }
+    .review-date { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+    .review-google-badge {
+      position: absolute; top: 20px; right: 20px;
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.7rem; color: #888; font-weight: 700;
+    }
+    .google-g {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: linear-gradient(135deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%);
+      display: inline-block; flex-shrink: 0;
+    }
+    .overall-rating {
+      display: flex; align-items: center; gap: 16px;
+      background: #da0908; color: #fff;
+      padding: 20px 28px; margin-bottom: 32px;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .rating-number { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; line-height: 1; }
+    .rating-details { flex: 1; }
+    .rating-stars { font-size: 1.3rem; color: #F4B400; letter-spacing: 3px; margin-bottom: 4px; }
+    .rating-count { font-size: 0.85rem; opacity: 0.85; }
 
-/* ── HOURS + ORDER ── */
-.hours-order-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: start;
-}
-.hours-card {
-  background: #fff;
-  border: 2px solid #da0908;
-  padding: 32px;
-}
-.hours-card h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.3rem;
-  color: #da0908;
-  margin-bottom: 20px;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.hours-table { width: 100%; border-collapse: collapse; }
-.hours-table tr { border-bottom: 1px solid #f0e0e0; }
-.hours-table td {
-  padding: 9px 4px;
-  font-size: 0.92rem;
-}
-.hours-table td:first-child { font-weight: 700; color: #1a1a1a; }
-.hours-table td:last-child { text-align: right; color: #555; }
-.hours-table tr.closed td { color: #aaa; }
-.hours-table tr.today td { color: #da0908; font-weight: 700; }
-.order-card {
-  background: #da0908;
-  padding: 40px 32px;
-  text-align: center;
-  color: #fff;
-}
-.order-card h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: 1.6rem;
-  margin-bottom: 12px;
-}
-.order-card p {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  opacity: 0.9;
-  margin-bottom: 24px;
-}
-.order-card .btn-gold { width: 100%; text-align: center; margin-bottom: 12px; display: block; }
-.order-card .btn-outline-white {
-  display: block;
-  width: 100%;
-  text-align: center;
-  border: 2px solid rgba(255,255,255,0.6);
-  color: #fff;
-  background: transparent;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 12px 32px;
-  border-radius: 3px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-.order-card .btn-outline-white:hover { background: rgba(255,255,255,0.15); }
-.order-note {
-  margin-top: 16px;
-  font-size: 0.78rem;
-  opacity: 0.75;
-  font-style: italic;
-}
+    /* ── HOURS + ORDER ── */
+    .hours-order-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .hours-card {
+      background: #fff;
+      border: 2px solid #da0908;
+      padding: 32px;
+    }
+    .hours-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #da0908;
+      margin-bottom: 20px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .hours-table { width: 100%; border-collapse: collapse; }
+    .hours-table tr { border-bottom: 1px solid #f0e0e0; }
+    .hours-table td {
+      padding: 9px 4px;
+      font-size: 0.92rem;
+    }
+    .hours-table td:first-child { font-weight: 700; color: #1a1a1a; }
+    .hours-table td:last-child { text-align: right; color: #555; }
+    .hours-table tr.closed td { color: #aaa; }
+    .hours-table tr.today td { color: #da0908; font-weight: 700; }
+    .order-card {
+      background: #da0908;
+      padding: 40px 32px;
+      text-align: center;
+      color: #fff;
+    }
+    .order-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+    }
+    .order-card p {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      opacity: 0.9;
+      margin-bottom: 24px;
+    }
+    .order-card .btn-gold { width: 100%; text-align: center; margin-bottom: 12px; display: block; }
+    .order-card .btn-outline-white {
+      display: block;
+      width: 100%;
+      text-align: center;
+      border: 2px solid rgba(255,255,255,0.6);
+      color: #fff;
+      background: transparent;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 12px 32px;
+      border-radius: 3px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .order-card .btn-outline-white:hover { background: rgba(255,255,255,0.15); }
+    .order-note {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      opacity: 0.75;
+      font-style: italic;
+    }
 
-/* ── CONTACT ── */
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: start;
-}
-.contact-info h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: #da0908;
-  margin: 24px 0 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.contact-info h3:first-child { margin-top: 0; }
-.contact-info p, .contact-info a {
-  font-size: 0.95rem;
-  color: #333;
-  line-height: 1.7;
-  text-decoration: none;
-}
-.contact-info a:hover { color: #da0908; }
-.social-links {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.social-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #1a1a1a;
-  color: #fff;
-  text-decoration: none;
-  font-family: 'Lato', sans-serif;
-  font-weight: 700;
-  font-size: 0.82rem;
-  padding: 9px 16px;
-  border-radius: 3px;
-  letter-spacing: 0.06em;
-  transition: background 0.18s;
-}
-.social-btn:hover { background: #da0908; }
-.social-btn.fb { background: #1877F2; }
-.social-btn.fb:hover { background: #0d5dbf; }
-.map-container {
-  width: 100%;
-  aspect-ratio: 4/3;
-  background: #f0e8e8;
-  border: 2px solid #da0908;
-  overflow: hidden;
-}
-.map-container iframe { width: 100%; height: 100%; border: none; }
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .contact-info h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #da0908;
+      margin: 24px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .contact-info h3:first-child { margin-top: 0; }
+    .contact-info p, .contact-info a {
+      font-size: 0.95rem;
+      color: #333;
+      line-height: 1.7;
+      text-decoration: none;
+    }
+    .contact-info a:hover { color: #da0908; }
+    .social-links {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a1a1a;
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 9px 16px;
+      border-radius: 3px;
+      letter-spacing: 0.06em;
+      transition: background 0.18s;
+    }
+    .social-btn:hover { background: #da0908; }
+    .social-btn.fb { background: #1877F2; }
+    .social-btn.fb:hover { background: #0d5dbf; }
+    .map-container {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #f0e8e8;
+      border: 2px solid #da0908;
+      overflow: hidden;
+    }
+    .map-container iframe { width: 100%; height: 100%; border: none; }
 
-/* ── ORDER PAGE ── */
-.order-page-hero {
-  background: #da0908;
-  color: #fff;
-  text-align: center;
-  padding: 64px 24px;
-}
-.order-page-hero h1 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  margin-bottom: 12px;
-}
-.order-page-hero p {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto 32px;
-  line-height: 1.7;
-}
-.order-options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 28px;
-  margin-bottom: 48px;
-}
-.order-option-card {
-  border: 2px solid #f0d0d0;
-  padding: 32px;
-  text-align: center;
-  background: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.order-option-card:hover {
-  border-color: #da0908;
-  box-shadow: 0 4px 20px rgba(196,18,48,0.1);
-}
-.order-option-card h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.3rem;
-  color: #1a1a1a;
-  margin: 16px 0 8px;
-}
-.order-option-card p {
-  font-size: 0.9rem;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-.order-option-icon { font-size: 2.5rem; }
-.payment-note {
-  background: #fdf5f5;
-  border: 1px solid #f0d0d0;
-  padding: 24px 32px;
-  text-align: center;
-  margin-top: 12px;
-}
-.payment-note p {
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.7;
-}
-.payment-note strong { color: #da0908; }
+    /* ── ORDER PAGE ── */
+    .order-page-hero {
+      background: #da0908;
+      color: #fff;
+      text-align: center;
+      padding: 64px 24px;
+    }
+    .order-page-hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      margin-bottom: 12px;
+    }
+    .order-page-hero p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+    .order-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      margin-bottom: 48px;
+    }
+    .order-option-card {
+      border: 2px solid #f0d0d0;
+      padding: 32px;
+      text-align: center;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .order-option-card:hover {
+      border-color: #da0908;
+      box-shadow: 0 4px 20px rgba(196,18,48,0.1);
+    }
+    .order-option-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #1a1a1a;
+      margin: 16px 0 8px;
+    }
+    .order-option-card p {
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .order-option-icon { font-size: 2.5rem; }
+    .payment-note {
+      background: #fdf5f5;
+      border: 1px solid #f0d0d0;
+      padding: 24px 32px;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .payment-note p {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.7;
+    }
+    .payment-note strong { color: #da0908; }
 
-/* ── TERMS PAGE ── */
-.terms-content {
-  max-width: 780px;
-  margin: 0 auto;
-}
-.terms-content h2 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.4rem;
-  color: #da0908;
-  margin: 36px 0 12px;
-}
-.terms-content p, .terms-content li {
-  font-size: 0.95rem;
-  line-height: 1.8;
-  color: #444;
-  margin-bottom: 12px;
-}
-.terms-content ul { padding-left: 22px; }
-.terms-content li { margin-bottom: 6px; }
+    /* ── TERMS PAGE ── */
+    .terms-content {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .terms-content h2 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: #da0908;
+      margin: 36px 0 12px;
+    }
+    .terms-content p, .terms-content li {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: #444;
+      margin-bottom: 12px;
+    }
+    .terms-content ul { padding-left: 22px; }
+    .terms-content li { margin-bottom: 6px; }
 
-/* ── PAGE HERO BANNER ── */
-.page-banner {
-  background: #da0908;
-  color: #fff;
-  text-align: center;
-  padding: 48px 24px;
-}
-.page-banner h1 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  margin-bottom: 8px;
-}
-.page-banner .chinese {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
+    /* ── PAGE HERO BANNER ── */
+    .page-banner {
+      background: #da0908;
+      color: #fff;
+      text-align: center;
+      padding: 48px 24px;
+    }
+    .page-banner h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      margin-bottom: 8px;
+    }
+    .page-banner .chinese {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
 
-/* ── FOOTER ── */
-.site-footer {
-  background: #1a0a00;
-  color: #d4b896;
-  padding: 48px 24px 24px;
-}
-.footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.footer-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
-}
-.footer-brand h3 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-size: 1.4rem;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.footer-brand .chinese {
-  font-family: 'Noto Serif SC', serif;
-  color: #C8960C;
-  font-size: 1rem;
-  margin-bottom: 12px;
-  display: block;
-}
-.footer-brand p {
-  font-size: 0.85rem;
-  line-height: 1.7;
-  opacity: 0.75;
-}
-.footer-col h4 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #fff;
-  margin-bottom: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.footer-col ul { list-style: none; }
-.footer-col li { margin-bottom: 8px; }
-.footer-col a {
-  text-decoration: none;
-  color: #d4b896;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  transition: color 0.18s, opacity 0.18s;
-}
-.footer-col a:hover { color: #C8960C; opacity: 1; }
-.footer-col p { font-size: 0.85rem; opacity: 0.75; line-height: 1.6; }
-.footer-bottom {
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.footer-bottom p { font-size: 0.78rem; opacity: 0.55; }
-.footer-bottom a { color: #C8960C; text-decoration: none; font-size: 0.78rem; }
+    /* ── FOOTER ── */
+    .site-footer {
+      background: #1a0a00;
+      color: #d4b896;
+      padding: 48px 24px 24px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .footer-brand h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .footer-brand .chinese {
+      font-family: 'Noto Serif SC', serif;
+      color: #C8960C;
+      font-size: 1rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .footer-brand p {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      opacity: 0.75;
+    }
+    .footer-col h4 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin-bottom: 8px; }
+    .footer-col a {
+      text-decoration: none;
+      color: #d4b896;
+      font-size: 0.85rem;
+      opacity: 0.8;
+      transition: color 0.18s, opacity 0.18s;
+    }
+    .footer-col a:hover { color: #C8960C; opacity: 1; }
+    .footer-col p { font-size: 0.85rem; opacity: 0.75; line-height: 1.6; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom p { font-size: 0.78rem; opacity: 0.55; }
+    .footer-bottom a { color: #C8960C; text-decoration: none; font-size: 0.78rem; }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-  .hamburger { display: flex; }
-  .hero-top-row { flex-direction: column; align-items: center; }
-  .hero-panels-row { max-width: 100%; gap: 6px; margin-bottom: 24px; }
-  .hero-side-banner { height: clamp(100px, 22vw, 180px); }
-  .hero-center-image { max-width: none; }
-  .about-grid, .hours-order-grid, .contact-grid { grid-template-columns: 1fr; }
-  .about-image-stack { display: none; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .menu-list { grid-template-columns: 1fr; }
-  .lantern-svg { width: 44px; }
-  /* Ordering system mobile */
-  .order-menu-layout { grid-template-columns: 1fr !important; }
-  .order-cat-sidebar { position: static !important; display: flex !important; overflow-x: auto !important; gap: 0 !important; }
-  .order-checkout-layout { grid-template-columns: 1fr !important; }
-}
-@media (max-width: 480px) {
-  .footer-grid { grid-template-columns: 1fr; }
-  .hero-specials { flex-direction: column; align-items: center; }
-}
-```
-
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .hero-top-row { flex-direction: column; align-items: center; }
+      .hero-panels-row { max-width: 100%; gap: 6px; margin-bottom: 24px; }
+      .hero-side-banner { height: clamp(100px, 22vw, 180px); }
+      .hero-center-image { max-width: none; }
+      .about-grid, .hours-order-grid, .contact-grid { grid-template-columns: 1fr; }
+      .about-image-stack { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .menu-list { grid-template-columns: 1fr; }
+      .lantern-svg { width: 44px; }
+      /* Ordering system mobile */
+      .order-menu-layout { grid-template-columns: 1fr !important; }
+      .order-cat-sidebar { position: static !important; display: flex !important; overflow-x: auto !important; gap: 0 !important; }
+      .order-checkout-layout { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-specials { flex-direction: column; align-items: center; }
+    }
   </style>
 </head>
 <body>
@@ -1470,6 +1466,10 @@ function OrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [orderNum, setOrderNum] = useState(null);
   const [zoneError, setZoneError] = useState('');
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
 
   useEffect(() => {
     loadData();
@@ -1492,7 +1492,43 @@ function OrderPage() {
 
   const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const deliveryFee = orderType === 'delivery' ? (zones.find(z => z.id === form.zoneId)?.delivery_fee || 0) : 0;
-  const grandTotal = cartTotal + parseFloat(deliveryFee);
+
+  // Promo discount calculation
+  let discountAmount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.type === 'percent_off') discountAmount = cartTotal * (parseFloat(appliedPromo.value) / 100);
+    else if (appliedPromo.type === 'amount_off') discountAmount = Math.min(parseFloat(appliedPromo.value), cartTotal);
+    else if (appliedPromo.type === 'free_delivery') discountAmount = parseFloat(deliveryFee);
+  }
+  discountAmount = Math.max(0, discountAmount);
+
+  const taxRate = parseFloat(settings['tax_rate'] || '12') / 100;
+  const taxableAmount = cartTotal - (appliedPromo?.type !== 'free_delivery' ? discountAmount : 0) + (appliedPromo?.type === 'free_delivery' ? 0 : parseFloat(deliveryFee));
+  const taxAmount = taxableAmount * taxRate;
+  const grandTotal = cartTotal - discountAmount + parseFloat(deliveryFee) - (appliedPromo?.type === 'free_delivery' ? parseFloat(deliveryFee) : 0) + taxAmount;
+
+  async function applyPromo() {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoError('');
+    setPromoSuccess('');
+    const { data } = await db.from('promo_codes').select('*').eq('code', code).eq('is_active', true).single();
+    if (!data) { setPromoError('Invalid or expired promo code.'); return; }
+    if (data.expires_at && new Date(data.expires_at) < new Date()) { setPromoError('This promo code has expired.'); return; }
+    if (data.usage_limit && data.usage_count >= data.usage_limit) { setPromoError('This promo code has reached its usage limit.'); return; }
+    if (data.minimum_order > 0 && cartTotal < data.minimum_order) { setPromoError(`Minimum order of $${parseFloat(data.minimum_order).toFixed(2)} required for this code.`); return; }
+    if (data.applies_to !== 'both' && data.applies_to !== orderType) { setPromoError(`This code is only valid for ${data.applies_to} orders.`); return; }
+    setAppliedPromo(data);
+    const label = data.type === 'percent_off' ? `${data.value}% off` : data.type === 'amount_off' ? `$${parseFloat(data.value).toFixed(2)} off` : 'Free delivery';
+    setPromoSuccess(`✓ Promo applied: ${label}`);
+  }
+
+  function removePromo() {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoError('');
+    setPromoSuccess('');
+  }
 
   function openItem(item) {
     setItemModal(item);
@@ -1551,12 +1587,18 @@ function OrderPage() {
       items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, options: i.options })),
       subtotal: cartTotal,
       delivery_fee: parseFloat(deliveryFee),
+      discount: discountAmount,
+      promo_code: appliedPromo?.code || null,
+      tax: taxAmount,
       total: grandTotal,
       special_instructions: form.instructions,
       status: 'pending'
     }).select().single();
     setSubmitting(false);
     if (error) { alert('Error placing order. Please try again or call us.'); return; }
+    if (appliedPromo) {
+      await db.from('promo_codes').update({ usage_count: appliedPromo.usage_count + 1 }).eq('id', appliedPromo.id);
+    }
     setOrderNum(data.order_number);
     setStep('confirm');
   }
@@ -1590,7 +1632,7 @@ function OrderPage() {
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
         <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
-        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', address: '', postal: '', instructions: '' }); }}>Place Another Order</button>
+        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', address: '', postal: '', instructions: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); }}>Place Another Order</button>
       </div>
     </>
   );
@@ -1720,6 +1762,14 @@ function OrderPage() {
                   <span>Delivery Fee</span><span>${parseFloat(deliveryFee).toFixed(2)}</span>
                 </div>
               )}
+              {appliedPromo && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#4caf7d', marginBottom: '4px', fontWeight: '600' }}>
+                  <span>Promo ({appliedPromo.code})</span><span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#555', marginBottom: '4px' }}>
+                <span>Tax ({settings['tax_rate'] || '12'}%)</span><span>${taxAmount.toFixed(2)}</span>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', borderTop: '1px solid #f0d0d0', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total</span><span style={{ color: '#da0908' }}>${grandTotal.toFixed(2)}</span>
               </div>
@@ -1829,7 +1879,23 @@ function OrderPage() {
               </>
             )}
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Special Instructions (optional)</label>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Promo Code (optional)</label>
+              {appliedPromo ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: '1px solid #4caf7d', borderRadius: '3px', background: '#f0faf4' }}>
+                  <span style={{ flex: 1, fontSize: '0.9rem', color: '#4caf7d', fontWeight: '600' }}>{promoSuccess}</span>
+                  <button onClick={removePromo} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem', textDecoration: 'underline' }}>Remove</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" placeholder="Enter promo code" value={promoInput}
+                    onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                    onKeyDown={e => e.key === 'Enter' && applyPromo()}
+                    style={{ flex: 1, padding: '11px 14px', border: `1px solid ${promoError ? '#da0908' : '#ddd'}`, borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.95rem', outline: 'none', textTransform: 'uppercase' }} />
+                  <button onClick={applyPromo} className="btn-secondary" style={{ whiteSpace: 'nowrap', padding: '11px 18px' }}>Apply</button>
+                </div>
+              )}
+              {promoError && <p style={{ color: '#da0908', fontSize: '0.82rem', marginTop: '6px' }}>{promoError}</p>}
+            </div>
               <textarea placeholder="Allergies, special requests, delivery notes..." value={form.instructions}
                 onChange={e => setForm(p => ({ ...p, instructions: e.target.value }))}
                 rows="3"
@@ -1870,6 +1936,14 @@ function OrderPage() {
                   <span>Delivery Fee</span><span>{deliveryFee > 0 ? `$${parseFloat(deliveryFee).toFixed(2)}` : 'TBD'}</span>
                 </div>
               )}
+              {appliedPromo && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#4caf7d', marginBottom: '4px', fontWeight: '600' }}>
+                  <span>Promo ({appliedPromo.code})</span><span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#555', marginBottom: '4px' }}>
+                <span>Tax ({settings['tax_rate'] || '12'}%)</span><span>${taxAmount.toFixed(2)}</span>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', borderTop: '1px solid #f0d0d0', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total</span><span style={{ color: '#da0908' }}>${grandTotal.toFixed(2)}</span>
               </div>
@@ -2070,177 +2144,171 @@ function ContactPage({ setPage, tweaks }) {
                     <div>
                       <label htmlFor="message" style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Message</label>
                       <textarea id="message" rows="4" placeholder="Your message..." value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', resize: 'vertical' }}></textarea>
+                    </div>
+                    <button type="submit" className="btn-primary">Send Message</button>
+                  </form>
+                }
+              </div>
 
-```
-                </div>
-                <button type="submit" className="btn-primary">Send Message</button>
-              </form>
-            }
-          </div>
-
-          {/* Gloria Food Reservation Placeholder */}
-          <div id="gloria-food-reservation" style={{ marginTop: '24px', background: '#fdf5f5', border: '2px dashed #C8960C', padding: '32px', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#1a1a1a', marginBottom: '8px' }}>Dine-In Reservation System</p>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '16px' }}>Gloria Food reservation widget will be embedded here.<br />Replace with your Gloria Food reservation embed code.</p>
-            <code style={{ background: '#fff', border: '1px solid #ddd', padding: '6px 14px', borderRadius: '3px', fontSize: '0.78rem', color: '#555' }}>{`<!-- Gloria Food reservation widget -->`}</code>
+              {/* Gloria Food Reservation Placeholder */}
+              <div id="gloria-food-reservation" style={{ marginTop: '24px', background: '#fdf5f5', border: '2px dashed #C8960C', padding: '32px', textAlign: 'center' }}>
+                <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#1a1a1a', marginBottom: '8px' }}>Dine-In Reservation System</p>
+                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '16px' }}>Gloria Food reservation widget will be embedded here.<br />Replace with your Gloria Food reservation embed code.</p>
+                <code style={{ background: '#fff', border: '1px solid #ddd', padding: '6px 14px', borderRadius: '3px', fontSize: '0.78rem', color: '#555' }}>{`<!-- Gloria Food reservation widget -->`}</code>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-</>);
-```
+      </section>
+    </>);
 
 }
 
 // ── TERMS PAGE ──
 function TermsPage() {
-return (
-<>
-<div className="page-banner">
-<h1>Terms & Privacy</h1>
-<p className="chinese">條款與隱私</p>
-</div>
-<GreekBorder />
-<section className="section">
-<div className="terms-content">
-<p style={{ fontSize: ‘0.85rem’, color: ‘#888’ }}>Last updated: April 2026</p>
+  return (
+    <>
+      <div className="page-banner">
+        <h1>Terms & Privacy</h1>
+        <p className="chinese">條款與隱私</p>
+      </div>
+      <GreekBorder />
+      <section className="section">
+        <div className="terms-content">
+          <p style={{ fontSize: '0.85rem', color: '#888' }}>Last updated: April 2026</p>
 
-```
-      <h2>Terms of Use</h2>
-      <p>By using the Kakalots Restaurant website (kakalots.ca or related domain), you agree to these terms. We reserve the right to update them at any time.</p>
-      <p>This website is operated by Kakalots Restaurant (Lili & Jimmy), located at 496 Anderson Dr, Quesnel, BC, Canada.</p>
+          <h2>Terms of Use</h2>
+          <p>By using the Kakalots Restaurant website (kakalots.ca or related domain), you agree to these terms. We reserve the right to update them at any time.</p>
+          <p>This website is operated by Kakalots Restaurant (Lili & Jimmy), located at 496 Anderson Dr, Quesnel, BC, Canada.</p>
 
-      <h2>Online Ordering</h2>
-      <p>Online orders are processed through our own ordering system. By placing an order you agree to:</p>
-      <ul>
-        <li>Provide accurate contact and delivery information.</li>
-        <li>Payment is made directly to Kakalots Restaurant — cash or card — at pickup or to the delivery driver.</li>
-        <li>We reserve the right to refuse or cancel orders at our discretion.</li>
-        <li>Order availability depends on our business hours; orders placed outside hours will be addressed when we open.</li>
-      </ul>
+          <h2>Online Ordering</h2>
+          <p>Online orders are processed through our own ordering system. By placing an order you agree to:</p>
+          <ul>
+            <li>Provide accurate contact and delivery information.</li>
+            <li>Payment is made directly to Kakalots Restaurant — cash or card — at pickup or to the delivery driver.</li>
+            <li>We reserve the right to refuse or cancel orders at our discretion.</li>
+            <li>Order availability depends on our business hours; orders placed outside hours will be addressed when we open.</li>
+          </ul>
 
-      <h2>Reservations & Catering</h2>
-      <p>Dine-in reservations may be made via the online reservation system or by phone. Reservations are subject to availability. For catering inquiries, please contact us directly at 778-414-6789 or use the contact form.</p>
+          <h2>Reservations & Catering</h2>
+          <p>Dine-in reservations may be made via the online reservation system or by phone. Reservations are subject to availability. For catering inquiries, please contact us directly at 778-414-6789 or use the contact form.</p>
 
-      <h2>Accuracy of Information</h2>
-      <p>We make every effort to ensure hours, pricing, and menu information is current and accurate. However, items may be subject to availability and prices may change without notice.</p>
+          <h2>Accuracy of Information</h2>
+          <p>We make every effort to ensure hours, pricing, and menu information is current and accurate. However, items may be subject to availability and prices may change without notice.</p>
 
-      <h2>Privacy Policy</h2>
-      <p>Kakalots Restaurant is committed to protecting your privacy. We collect only the information necessary to process your order or respond to your inquiry.</p>
+          <h2>Privacy Policy</h2>
+          <p>Kakalots Restaurant is committed to protecting your privacy. We collect only the information necessary to process your order or respond to your inquiry.</p>
 
-      <h2>Information We Collect</h2>
-      <ul>
-        <li>Name, email address, phone number (when you contact us or place an order)</li>
-        <li>Delivery address (for delivery orders)</li>
-        <li>Message content (from the contact form)</li>
-      </ul>
+          <h2>Information We Collect</h2>
+          <ul>
+            <li>Name, email address, phone number (when you contact us or place an order)</li>
+            <li>Delivery address (for delivery orders)</li>
+            <li>Message content (from the contact form)</li>
+          </ul>
 
-      <h2>How We Use Your Information</h2>
-      <ul>
-        <li>To fulfill your order or reservation</li>
-        <li>To respond to your inquiry</li>
-        <li>We do not sell, rent, or share your information with third parties for marketing purposes</li>
-      </ul>
+          <h2>How We Use Your Information</h2>
+          <ul>
+            <li>To fulfill your order or reservation</li>
+            <li>To respond to your inquiry</li>
+            <li>We do not sell, rent, or share your information with third parties for marketing purposes</li>
+          </ul>
 
-      <h2>Third-Party Services</h2>
-      <p>Our website uses Supabase for order data storage and Google Maps for location services. Their respective privacy policies apply to data processed through their platforms.</p>
+          <h2>Third-Party Services</h2>
+          <p>Our website uses Supabase for order data storage and Google Maps for location services. Their respective privacy policies apply to data processed through their platforms.</p>
 
-      <h2>Cookies</h2>
-      <p>This website may use essential cookies to ensure basic functionality. We do not use tracking or advertising cookies.</p>
+          <h2>Cookies</h2>
+          <p>This website may use essential cookies to ensure basic functionality. We do not use tracking or advertising cookies.</p>
 
-      <h2>Contact</h2>
-      <p>For questions about our terms or privacy practices, contact us at:<br />
-      <strong>Kakalots Restaurant</strong><br />
-      496 Anderson Dr, Quesnel, BC, Canada<br />
-      Phone: 778-414-6789</p>
-    </div>
-  </section>
-</>);
-```
+          <h2>Contact</h2>
+          <p>For questions about our terms or privacy practices, contact us at:<br />
+          <strong>Kakalots Restaurant</strong><br />
+          496 Anderson Dr, Quesnel, BC, Canada<br />
+          Phone: 778-414-6789</p>
+        </div>
+      </section>
+    </>);
 
 }
 
 // ── FOOTER ──
 function Footer({ setPage }) {
-const go = (id) => {setPage(id);window.scrollTo(0, 0);};
-return (
-<footer className="site-footer" role="contentinfo">
-<GreekBorder />
-<div style={{ height: ‘32px’ }}></div>
-<div className="footer-inner">
-<div className="footer-grid">
-<div className="footer-brand">
-<h3>KAKALOTS</h3>
-<span className="chinese">家家樂酒家</span>
-<p>Family-run Chinese restaurant serving Quesnel and the surrounding community. Excellent Chinese and western cuisine, made fresh with the finest ingredients.</p>
-<div style={{ marginTop: ‘16px’, display: ‘flex’, gap: ‘10px’, flexWrap: ‘wrap’ }}>
-<a href=“https://www.facebook.com/profile.php?id=100064086065776” target=”_blank” rel=“noopener noreferrer” className=“social-btn fb” style={{ fontSize: ‘0.78rem’, padding: ‘7px 13px’ }} aria-label=“Facebook”>
-<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-Facebook
-</a>
-<a href=“https://share.google/vYYRav1L4wop6GK92” target=”_blank” rel=“noopener noreferrer” className=“social-btn” style={{ fontSize: ‘0.78rem’, padding: ‘7px 13px’, background: ‘#444’ }} aria-label=“Google Business”>
-Google Business
-</a>
-</div>
-</div>
-<div className="footer-col">
-<h4>Navigate</h4>
-<ul>
-{[[‘home’, ‘Home’], [‘order’, ‘Order Online’], [‘about’, ‘About Us’], [‘contact’, ‘Contact’]].map(([id, label]) =>
-<li key={id}><a href=”#” onClick={(e) => {e.preventDefault();go(id);}}>{label}</a></li>
-)}
-<li><a href=”#” onClick={(e) => {e.preventDefault();go(‘terms’);}}>Terms & Privacy</a></li>
-</ul>
-</div>
-<div className="footer-col">
-<h4>Contact</h4>
-<p>496 Anderson Dr<br />Quesnel, BC, Canada</p>
-<p style={{ marginTop: ‘10px’ }}><a href="tel:7784146789">778-414-6789</a></p>
-</div>
-<div className="footer-col">
-<h4>Hours</h4>
-<p>Mon, Wed–Fri<br />12:00pm – 8:30pm</p>
-<p style={{ marginTop: ‘8px’ }}>Sat–Sun<br />3:00pm – 8:30pm</p>
-<p style={{ marginTop: ‘8px’, opacity: ‘0.5’ }}>Closed Tuesdays</p>
-</div>
-</div>
-<div className="footer-bottom">
-<p>© 2026 Kakalots Restaurant. All rights reserved. | 496 Anderson Dr, Quesnel, BC</p>
-<a href=”#” onClick={(e) => {e.preventDefault();setPage(‘terms’);window.scrollTo(0, 0);}}>Terms & Privacy</a>
-</div>
-</div>
-</footer>);
+  const go = (id) => {setPage(id);window.scrollTo(0, 0);};
+  return (
+    <footer className="site-footer" role="contentinfo">
+      <GreekBorder />
+      <div style={{ height: '32px' }}></div>
+      <div className="footer-inner">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <h3>KAKALOTS</h3>
+            <span className="chinese">家家樂酒家</span>
+            <p>Family-run Chinese restaurant serving Quesnel and the surrounding community. Excellent Chinese and western cuisine, made fresh with the finest ingredients.</p>
+            <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <a href="https://www.facebook.com/profile.php?id=100064086065776" target="_blank" rel="noopener noreferrer" className="social-btn fb" style={{ fontSize: '0.78rem', padding: '7px 13px' }} aria-label="Facebook">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                Facebook
+              </a>
+              <a href="https://share.google/vYYRav1L4wop6GK92" target="_blank" rel="noopener noreferrer" className="social-btn" style={{ fontSize: '0.78rem', padding: '7px 13px', background: '#444' }} aria-label="Google Business">
+                Google Business
+              </a>
+            </div>
+          </div>
+          <div className="footer-col">
+            <h4>Navigate</h4>
+            <ul>
+              {[['home', 'Home'], ['order', 'Order Online'], ['about', 'About Us'], ['contact', 'Contact']].map(([id, label]) =>
+              <li key={id}><a href="#" onClick={(e) => {e.preventDefault();go(id);}}>{label}</a></li>
+              )}
+              <li><a href="#" onClick={(e) => {e.preventDefault();go('terms');}}>Terms & Privacy</a></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Contact</h4>
+            <p>496 Anderson Dr<br />Quesnel, BC, Canada</p>
+            <p style={{ marginTop: '10px' }}><a href="tel:7784146789">778-414-6789</a></p>
+          </div>
+          <div className="footer-col">
+            <h4>Hours</h4>
+            <p>Mon, Wed–Fri<br />12:00pm – 8:30pm</p>
+            <p style={{ marginTop: '8px' }}>Sat–Sun<br />3:00pm – 8:30pm</p>
+            <p style={{ marginTop: '8px', opacity: '0.5' }}>Closed Tuesdays</p>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2026 Kakalots Restaurant. All rights reserved. | 496 Anderson Dr, Quesnel, BC</p>
+          <a href="#" onClick={(e) => {e.preventDefault();setPage('terms');window.scrollTo(0, 0);}}>Terms & Privacy</a>
+        </div>
+      </div>
+    </footer>);
 
 }
 
 // ── APP ──
 function App() {
-const [page, setPage] = useState(‘home’);
+  const [page, setPage] = useState('home');
 
-const pages = {
-home: <HomePage setPage={setPage} />,
-order: <OrderPage />,
-about: <AboutPage />,
-contact: <ContactPage setPage={setPage} />,
-terms: <TermsPage />
-};
+  const pages = {
+    home: <HomePage setPage={setPage} />,
+    order: <OrderPage />,
+    about: <AboutPage />,
+    contact: <ContactPage setPage={setPage} />,
+    terms: <TermsPage />
+  };
 
-return (
-<>
-<Nav page={page} setPage={setPage} />
-<main id="main-content" role="main">
-<div key={page} className="page-fade">
-{pages[page] || pages.home}
-</div>
-</main>
-<Footer setPage={setPage} />
-</>);
+  return (
+    <>
+      <Nav page={page} setPage={setPage} />
+      <main id="main-content" role="main">
+        <div key={page} className="page-fade">
+          {pages[page] || pages.home}
+        </div>
+      </main>
+      <Footer setPage={setPage} />
+    </>);
 
 }
 
-ReactDOM.createRoot(document.getElementById(‘root’)).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
-
 </body>
 </html>
