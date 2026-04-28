@@ -319,6 +319,11 @@
   🔔 NEW ORDER RECEIVED — Click to view
 </div>
 
+<!-- NEW RESERVATION BANNER -->
+<div id="new-reservation-banner" onclick="showPage('reservations')" style="position:fixed;top:48px;left:220px;right:0;background:#4a90d9;color:#fff;padding:14px 24px;font-family:var(--mono);font-weight:600;font-size:14px;display:none;z-index:998;cursor:pointer;animation:slideDown 0.3s ease;">
+  📅 NEW RESERVATION REQUEST — Click to view
+</div>
+
 <!-- MAIN APP -->
 <div id="app">
   <div class="sidebar">
@@ -338,6 +343,7 @@
       </div>
       <div class="nav-item" onclick="showPage('reservations')" id="nav-reservations">
         <span class="nav-icon">📅</span> Reservations
+        <span id="resv-nav-badge" style="display:none;background:var(--accent);color:#000;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:auto;font-weight:600;font-family:var(--mono)"></span>
       </div>
       <div class="nav-item" onclick="showPage('promos')" id="nav-promos">
         <span class="nav-icon">🏷️</span> Promo Codes
@@ -773,10 +779,12 @@ async function initApp() {
   initNotificationSound();
   await loadOrders();
   subscribeToOrders();
+  subscribeToReservations();
   await loadSettings();
   await loadCategories();
   await loadZones();
   await loadHours();
+  await loadReservations();
 }
 
 function initNotificationSound() {
@@ -930,7 +938,17 @@ function renderOrderCard(order) {
         </div>
       </div>
       ${order.special_instructions ? `<div class="order-instructions">📝 ${order.special_instructions}</div>` : ''}
-      <div class="order-actions">${actions}<span class="order-time">Pay in person</span></div>
+      <div class="order-actions">${actions}
+        <span class="order-time">
+          ${order.order_type === 'pickup' 
+            ? '🏪 Pay at counter' 
+            : order.payment_method === 'cash' 
+              ? '💵 Cash to driver' 
+              : order.payment_method === 'card' 
+                ? '💳 Card to driver' 
+                : '💳 Pay at delivery'}
+        </span>
+      </div>
     </div>
   `;
 }
@@ -1347,6 +1365,34 @@ async function saveTaxSettings() {
   toast(`Tax rate set to ${rate}%`, 'success');
 }
 
+function subscribeToReservations() {
+  db.channel('reservations-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservations' }, (payload) => {
+      allReservations.unshift(payload.new);
+      playNotification();
+      showNewReservationBanner();
+      updateResvBadges();
+      updateResvNavBadge();
+    }).subscribe();
+}
+
+function showNewReservationBanner() {
+  const banner = document.getElementById('new-reservation-banner');
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, 8000);
+}
+
+function updateResvNavBadge() {
+  const pending = allReservations.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('resv-nav-badge');
+  if (pending > 0) {
+    badge.textContent = pending;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 // ============ RESERVATIONS ============
 let allReservations = [];
 let currentResvFilter = 'pending';
@@ -1356,6 +1402,7 @@ async function loadReservations() {
   allReservations = data || [];
   renderReservations();
   updateResvBadges();
+  updateResvNavBadge();
 }
 
 function filterReservations(filter) {
@@ -1425,6 +1472,7 @@ async function updateReservation(id, status) {
   if (idx !== -1) allReservations[idx].status = status;
   renderReservations();
   updateResvBadges();
+  updateResvNavBadge();
   toast(`Reservation ${status}`, 'success');
 }
 
