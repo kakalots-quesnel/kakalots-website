@@ -1323,8 +1323,7 @@ async function saveTaxSettings() {
 }
 
 // ============ ACCEPT / REJECT MODALS ============
-const RESEND_API_KEY = 're_jbafPhvU_CbHEtpSBUqmVXUVAD8yQLUKU';
-const FROM_EMAIL = 'Kakalots Restaurant <onboarding@resend.dev>';
+const EDGE_FUNCTION_URL = 'https://wbdyswkzdzqrxwkhnuaf.supabase.co/functions/v1/send-email';
 
 let pendingAcceptOrder = null;
 let pendingRejectOrder = null;
@@ -1390,87 +1389,24 @@ async function confirmReject() {
 }
 
 // ============ EMAIL FUNCTIONS ============
+const EDGE_FUNCTION_URL = 'https://wbdyswkzdzqrxwkhnuaf.supabase.co/functions/v1/send-email';
+
 async function sendAcceptEmail(order, estTime) {
   try {
-    const items = (order.items || []).map(i =>
-      `<tr><td style="padding:6px 0;border-bottom:1px solid #f0f0f0">${i.qty}x ${i.name}${i.options ? '<br><small style="color:#888">'+i.options+'</small>' : ''}</td><td style="text-align:right;padding:6px 0;border-bottom:1px solid #f0f0f0;font-family:monospace">$${(i.price*i.qty).toFixed(2)}</td></tr>`
-    ).join('');
-
-    const html = `
-      <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#fff">
-        <div style="background:#da0908;padding:28px 32px;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:0.04em">🥢 KAKALOTS</h1>
-          <p style="color:#ffcccc;margin:6px 0 0;font-size:13px">496 Anderson Dr, Quesnel BC · 778-414-6789</p>
-        </div>
-        <div style="padding:32px">
-          <div style="background:#f0faf4;border:1px solid #4caf7d;border-radius:4px;padding:16px 20px;margin-bottom:24px;text-align:center">
-            <p style="margin:0;font-size:18px;font-weight:700;color:#2d7a4f">✓ Order Confirmed!</p>
-            <p style="margin:6px 0 0;color:#555;font-size:14px">Your order has been accepted and is being prepared</p>
-          </div>
-          <p style="color:#333;font-size:15px">Hi <strong>${order.customer_name}</strong>,</p>
-          <p style="color:#555;font-size:14px;line-height:1.7">Great news! We've accepted your order. Estimated time: <strong style="color:#da0908">${estTime} minutes</strong>.</p>
-          <div style="background:#fdf5f5;border-radius:4px;padding:6px 16px;margin:20px 0">
-            <p style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin:12px 0 8px">Order #${order.order_number} · ${order.order_type === 'pickup' ? '🥡 Pickup' : '🛵 Delivery'}</p>
-            <table style="width:100%;border-collapse:collapse">${items}</table>
-            <table style="width:100%;border-collapse:collapse;margin-top:8px">
-              <tr><td style="padding:4px 0;font-size:13px;color:#555">Subtotal</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.subtotal).toFixed(2)}</td></tr>
-              ${order.delivery_fee > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#555">Delivery Fee</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.delivery_fee).toFixed(2)}</td></tr>` : ''}
-              ${order.discount > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#4caf7d">Promo${order.promo_code ? ' ('+order.promo_code+')' : ''}</td><td style="text-align:right;font-size:13px;color:#4caf7d">-$${parseFloat(order.discount).toFixed(2)}</td></tr>` : ''}
-              ${order.tax > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#555">Tax</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.tax).toFixed(2)}</td></tr>` : ''}
-              <tr><td style="padding:8px 0 4px;font-weight:700;border-top:2px solid #da0908">Total</td><td style="text-align:right;font-weight:700;color:#da0908;border-top:2px solid #da0908;padding-top:8px">$${parseFloat(order.total).toFixed(2)}</td></tr>
-            </table>
-          </div>
-          <div style="background:#fff8e1;border:1px solid #C8960C;border-radius:4px;padding:14px 18px;margin:20px 0">
-            <p style="margin:0;font-size:14px;color:#333">💳 <strong>Payment:</strong> ${order.order_type === 'pickup' ? 'Please pay at our counter when you pick up your order. Cash or card accepted.' : 'Please have payment ready for your delivery driver. Cash or card accepted.'}</p>
-          </div>
-          ${order.order_type === 'pickup' ? `<p style="color:#555;font-size:14px">📍 <strong>Pickup at:</strong> 496 Anderson Dr, Quesnel BC</p>` : `<p style="color:#555;font-size:14px">📍 <strong>Delivering to:</strong> ${order.delivery_address}</p>`}
-          <p style="color:#888;font-size:13px;margin-top:24px">Questions? Call us at <a href="tel:7784146789" style="color:#da0908">778-414-6789</a></p>
-        </div>
-        <div style="background:#1a1a1a;padding:16px;text-align:center">
-          <p style="color:#888;font-size:12px;margin:0">Kakalots Restaurant · 家家樂酒家 · Quesnel, BC</p>
-        </div>
-      </div>`;
-
-    await fetch('https://api.resend.com/emails', {
+    await fetch(EDGE_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM_EMAIL, to: order.customer_email, subject: `✓ Order #${order.order_number} Confirmed — Ready in ${estTime} min`, html })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ type: 'accept', order, estTime })
     });
   } catch(e) { console.error('Email send failed:', e); }
 }
 
 async function sendRejectEmail(order, reason) {
   try {
-    const html = `
-      <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#fff">
-        <div style="background:#da0908;padding:28px 32px;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:0.04em">🥢 KAKALOTS</h1>
-          <p style="color:#ffcccc;margin:6px 0 0;font-size:13px">496 Anderson Dr, Quesnel BC · 778-414-6789</p>
-        </div>
-        <div style="padding:32px">
-          <div style="background:#fff0f0;border:1px solid #da0908;border-radius:4px;padding:16px 20px;margin-bottom:24px;text-align:center">
-            <p style="margin:0;font-size:18px;font-weight:700;color:#da0908">Order #${order.id} — Unable to Process</p>
-          </div>
-          <p style="color:#333;font-size:15px">Hi <strong>${order.customerName}</strong>,</p>
-          <p style="color:#555;font-size:14px;line-height:1.7">We're sorry, but we're unable to fulfill your order at this time.</p>
-          <div style="background:#fdf5f5;border-left:4px solid #da0908;padding:14px 18px;margin:20px 0">
-            <p style="margin:0;font-size:14px;color:#333"><strong>Reason:</strong> ${reason}</p>
-          </div>
-          <p style="color:#555;font-size:14px;line-height:1.7">We apologize for the inconvenience. Please call us directly and we'll do our best to help.</p>
-          <div style="text-align:center;margin:28px 0">
-            <a href="tel:7784146789" style="background:#da0908;color:#fff;padding:14px 28px;text-decoration:none;font-weight:700;border-radius:3px;font-size:15px">Call Us: 778-414-6789</a>
-          </div>
-          <p style="color:#888;font-size:13px">You have not been charged. No payment was processed.</p>
-        </div>
-        <div style="background:#1a1a1a;padding:16px;text-align:center">
-          <p style="color:#888;font-size:12px;margin:0">Kakalots Restaurant · 家家樂酒家 · Quesnel, BC</p>
-        </div>
-      </div>`;
-
-    await fetch('https://api.resend.com/emails', {
+    await fetch(EDGE_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM_EMAIL, to: order.customerEmail, subject: `Order Update — Kakalots Restaurant`, html })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ type: 'reject', order, reason })
     });
   } catch(e) { console.error('Email send failed:', e); }
 }
