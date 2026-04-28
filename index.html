@@ -1076,7 +1076,7 @@ function Nav({ page, setPage }) {
       <GreekBorder />
       <div className="nav-inner">
         <a className="nav-logo" href="#" onClick={(e) => {e.preventDefault();go('home');}}>
-          <img src="uploads/logo.png" alt="Kakalots Restaurant 家家樂酒家" style={{ height: '44px', width: 'auto', display: 'block' }} />
+          <img src="https://i.ibb.co/7J0Lvt1T/logo.png" alt="Kakalots Restaurant 家家樂酒家" style={{ height: '44px', width: 'auto', display: 'block' }} />
         </a>
         <ul className="nav-links" role="menubar">
           {links.map((l) =>
@@ -1275,7 +1275,7 @@ function HomePage({ setPage }) {
           <div className="hero-center">
             <p className="hero-welcome">Welcome To</p>
             <img
-              src="uploads/logo.png"
+              src="https://i.ibb.co/7J0Lvt1T/logo.png"
               alt="Kakalots Restaurant 家家樂酒家"
               style={{ maxWidth: '480px', width: '100%', display: 'block', margin: '0 auto 14px' }} />
             
@@ -1284,11 +1284,11 @@ function HomePage({ setPage }) {
         </div>
 
         <div className="hero-panels-row" style={{ gap: "80px" }}>
-          <img src="uploads/3-7208bd1d.png" alt="家家歡樂 — Family happiness banner" className="hero-side-banner" />
+          <img src="https://i.ibb.co/JW7jjfQS/3.png" alt="家家歡樂 — Family happiness banner" className="hero-side-banner" />
           <div className="hero-center-image" role="img" aria-label="Lion dance celebration">
-            <img src="uploads/2-08ac1c9c.png" alt="Lion dance at Kakalots Restaurant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src="https://i.ibb.co/fGXgLX26/2.png" alt="Kakalots Restaurant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <img src="uploads/4-55cee965.png" alt="大千風味 — Great flavours banner" className="hero-side-banner" style={{ borderColor: "rgb(218, 9, 8)", borderStyle: "solid", objectFit: "fill", borderWidth: "0px" }} />
+          <img src="https://i.ibb.co/VYsfWBPt/4.png" alt="大千風味 — Great flavours banner" className="hero-side-banner" style={{ borderColor: "rgb(218, 9, 8)", borderStyle: "solid", objectFit: "fill", borderWidth: "0px" }} />
         </div>
 
         <div className="hero-specials" role="list" aria-label="Weekly specials">
@@ -1396,45 +1396,6 @@ function HomePage({ setPage }) {
 </p>
             </div>
           </div>
-        </div>
-      </RevealSection>
-
-      {/* REVIEWS */}
-      <RevealSection style={{ background: '#fff' }}>
-        <div className="section-inner">
-          <p className="section-chinese">顧客評價</p>
-          <h2 className="section-title">What Our Guests Say</h2>
-          <div className="section-divider"><div className="divider-line"></div><span className="divider-icon">✦</span><div className="divider-line"></div></div>
-          <div className="overall-rating">
-            <div className="rating-number">4.5</div>
-            <div className="rating-details">
-              <div className="rating-stars">★★★★½</div>
-              <div className="rating-count">Based on Google Reviews</div>
-            </div>
-            <a href="https://share.google/vYYRav1L4wop6GK92" target="_blank" rel="noopener noreferrer"
-            style={{ background: '#fff', color: '#da0908', fontFamily: 'Lato, sans-serif', fontWeight: '700', fontSize: '0.82rem', padding: '10px 18px', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-              View All Reviews →
-            </a>
-          </div>
-          <div className="reviews-grid">
-            {[
-            { name: 'Sandra M.', date: 'March 2025', text: 'Best Chinese food in Quesnel, hands down. The Ginger Fried Beef is absolutely incredible — crispy, flavourful, and always perfectly cooked. Lili and Jimmy run a wonderful restaurant.', stars: 5 },
-            { name: 'Tyler B.', date: 'January 2025', text: 'We went for the weekend smorgasbord and were blown away by the variety and quality. Great value, great atmosphere. Will absolutely be back.', stars: 5 },
-            { name: 'Karen L.', date: 'February 2025', text: 'Kakalots catered our company event for 80 people and every single dish was outstanding. Professional, timely, and the food was restaurant-quality. Highly recommend for catering!', stars: 5 },
-            { name: 'Mike D.', date: 'April 2025', text: 'A Quesnel staple. The Wonton Soup warms you right up and the spring rolls are made fresh in-house. Friendly staff every single time.', stars: 4 }].
-            map((r, i) =>
-            <div className="review-card" key={i}>
-                <div className="review-google-badge"><span className="google-g"></span>Google</div>
-                <div className="review-stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</div>
-                <p className="review-text">"{r.text}"</p>
-                <p className="review-author">{r.name}</p>
-                <p className="review-date">{r.date}</p>
-              </div>
-            )}
-          </div>
-          <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.78rem', color: '#aaa' }}>
-            ✦ Replace these with your actual Google reviews — copy text directly from your Google Business profile
-          </p>
         </div>
       </RevealSection>
 
