@@ -314,6 +314,11 @@
   </div>
 </div>
 
+<!-- SOUND ENABLE BUTTON -->
+<div id="sound-enable-btn" onclick="enableSound()" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--accent);color:var(--accent);padding:12px 24px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:13px;font-weight:600;z-index:999;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
+  🔔 Click to Enable Order Notifications
+</div>
+
 <!-- NEW ORDER BANNER -->
 <div id="new-order-banner" onclick="goToOrders()">
   🔔 NEW ORDER RECEIVED — Click to view
@@ -751,7 +756,6 @@ let editingItemId = null;
 let editingZoneId = null;
 let allOrders = [];
 let orderSubscription = null;
-let notificationAudio = null;
 
 // ============ AUTH ============
 function login() {
@@ -787,41 +791,70 @@ async function initApp() {
   await loadReservations();
 }
 
+let audioCtx = null;
+let soundEnabled = false;
+
 function initNotificationSound() {
-  notificationAudio = new AudioContext();
+  // Show sound enable button
+  document.getElementById('sound-enable-btn').style.display = 'flex';
+}
+
+function enableSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    soundEnabled = true;
+    document.getElementById('sound-enable-btn').style.display = 'none';
+    playBeep();
+  } catch(e) {}
+}
+
+// Keep AudioContext alive by resuming on any interaction
+document.addEventListener('click', () => {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+});
+
+function playBeep() {
+  try {
+    if (!audioCtx || !soundEnabled) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const times = [0, 0.25, 0.5];
+    times.forEach(t => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
+      gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.2);
+      osc.start(audioCtx.currentTime + t);
+      osc.stop(audioCtx.currentTime + t + 0.2);
+    });
+  } catch(e) { console.log('Audio error:', e); }
 }
 
 function playNotification() {
-  try {
-    const ctx = new AudioContext();
-    const times = [0, 0.2, 0.4];
-    times.forEach(t => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.15);
-      osc.start(ctx.currentTime + t);
-      osc.stop(ctx.currentTime + t + 0.15);
-    });
-  } catch(e) {}
+  playBeep();
 }
 
 let pendingAlertInterval = null;
 
 function startPendingAlert() {
-  if (pendingAlertInterval) return; // already running
-  playNotification();
+  if (pendingAlertInterval) return;
+  playBeep();
   pendingAlertInterval = setInterval(() => {
     const hasPending = allOrders.some(o => o.status === 'pending');
     if (!hasPending) {
       stopPendingAlert();
     } else {
-      playNotification();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      playBeep();
     }
-  }, 8000); // beep every 8 seconds
+  }, 6000);
 }
 
 function stopPendingAlert() {
