@@ -328,6 +328,9 @@
       <div class="nav-item" onclick="showPage('hours')" id="nav-hours">
         <span class="nav-icon">🕐</span> Hours
       </div>
+      <div class="nav-item" onclick="showPage('promos')" id="nav-promos">
+        <span class="nav-icon">🏷️</span> Promo Codes
+      </div>
       <div class="nav-item" onclick="showPage('history')" id="nav-history">
         <span class="nav-icon">📊</span> Order History
       </div>
@@ -404,6 +407,15 @@
         <button class="btn btn-primary" onclick="saveHours()">Save Hours</button>
       </div>
       <div class="hours-grid" id="hours-list"></div>
+    </div>
+
+    <!-- PROMOS -->
+    <div class="page" id="page-promos">
+      <div class="page-header">
+        <div class="page-title">Promo Codes</div>
+        <button class="btn btn-primary" onclick="openPromoModal()">+ Add Promo Code</button>
+      </div>
+      <div id="promos-list" style="display:flex;flex-direction:column;gap:12px;"></div>
     </div>
 
     <!-- HISTORY -->
@@ -485,6 +497,15 @@
         </div>
         <button class="btn btn-primary" onclick="saveOrderSettings()">Save Order Settings</button>
       </div>
+      <div class="settings-section">
+        <h3>Tax Settings</h3>
+        <div class="form-group">
+          <label class="form-label">Tax Rate (%)</label>
+          <input class="form-input" id="s-tax-rate" type="number" step="0.1" placeholder="e.g. 12 for 12%">
+          <div style="font-size:11px;color:var(--text2);margin-top:6px">Applied to subtotal + delivery fee on all orders. BC default: GST 5% + PST 7% = 12%. Update here anytime if rates change.</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveTaxSettings()">Save Tax Rate</button>
+      </div>
     </div>
   </div>
 </div>
@@ -562,6 +583,62 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('zone-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveZone()">Save Zone</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="promo-modal">
+  <div class="modal">
+    <h2 id="promo-modal-title">Add Promo Code</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Code</label>
+        <input class="form-input" id="promo-code" type="text" placeholder="e.g. WELCOME10" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-input" id="promo-type" onchange="updatePromoValueLabel()">
+          <option value="percent_off">% Off Subtotal</option>
+          <option value="amount_off">$ Off Subtotal</option>
+          <option value="free_delivery">Free Delivery</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" id="promo-value-group">
+        <label class="form-label" id="promo-value-label">Discount Value (%)</label>
+        <input class="form-input" id="promo-value" type="number" step="0.01" placeholder="e.g. 10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Minimum Order (CAD)</label>
+        <input class="form-input" id="promo-min" type="number" step="0.01" placeholder="0.00 = no minimum">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Applies To</label>
+        <select class="form-input" id="promo-applies">
+          <option value="both">Pickup & Delivery</option>
+          <option value="pickup">Pickup Only</option>
+          <option value="delivery">Delivery Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Usage Limit (blank = unlimited)</label>
+        <input class="form-input" id="promo-limit" type="number" placeholder="e.g. 50">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Expiry Date (blank = never expires)</label>
+      <input class="form-input" id="promo-expiry" type="datetime-local">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description (internal note)</label>
+      <input class="form-input" id="promo-desc" type="text" placeholder="e.g. New customer welcome discount">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('promo-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePromo()">Save Promo Code</button>
     </div>
   </div>
 </div>
@@ -652,6 +729,7 @@ function showPage(page) {
   document.getElementById('nav-' + page).classList.add('active');
   if (page === 'history') loadHistory();
   if (page === 'settings') loadSettingsPage();
+  if (page === 'promos') loadPromos();
 }
 
 function goToOrders() {
@@ -761,7 +839,9 @@ function renderOrderCard(order) {
       <div class="order-items">${itemsHtml}
         <div class="order-totals">
           <div class="order-total-row"><span>Subtotal</span><span>$${order.subtotal.toFixed(2)}</span></div>
+          ${order.discount > 0 ? `<div class="order-total-row" style="color:var(--green)"><span>Promo ${order.promo_code ? '('+order.promo_code+')' : ''}</span><span>-$${parseFloat(order.discount).toFixed(2)}</span></div>` : ''}
           ${order.delivery_fee > 0 ? `<div class="order-total-row"><span>Delivery Fee</span><span>$${order.delivery_fee.toFixed(2)}</span></div>` : ''}
+          ${order.tax > 0 ? `<div class="order-total-row"><span>Tax</span><span>$${parseFloat(order.tax).toFixed(2)}</span></div>` : ''}
           <div class="order-total-row order-grand-total"><span>TOTAL</span><span>$${order.total.toFixed(2)}</span></div>
         </div>
       </div>
@@ -1148,6 +1228,7 @@ async function loadSettingsPage() {
   document.getElementById('s-pickup-enabled').value = s['pickup_enabled'] || 'true';
   document.getElementById('s-delivery-enabled').value = s['delivery_enabled'] || 'true';
   document.getElementById('s-announcement').value = s['announcement'] || '';
+  document.getElementById('s-tax-rate').value = s['tax_rate'] || '12';
 }
 
 async function setSetting(key, value) {
@@ -1173,6 +1254,135 @@ async function saveOrderSettings() {
   await setSetting('delivery_enabled', document.getElementById('s-delivery-enabled').value);
   await setSetting('announcement', document.getElementById('s-announcement').value);
   toast('Order settings saved', 'success');
+}
+
+async function saveTaxSettings() {
+  const rate = parseFloat(document.getElementById('s-tax-rate').value);
+  if (isNaN(rate) || rate < 0 || rate > 100) return toast('Enter a valid tax rate (0-100)', 'error');
+  await setSetting('tax_rate', rate.toString());
+  toast(`Tax rate set to ${rate}%`, 'success');
+}
+
+// ============ PROMOS ============
+let editingPromoId = null;
+
+async function loadPromos() {
+  const { data } = await db.from('promo_codes').select('*').order('created_at', { ascending: false });
+  const list = document.getElementById('promos-list');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="color:var(--text2);padding:20px">No promo codes yet. Add your first one.</div>';
+    return;
+  }
+  list.innerHTML = data.map(p => {
+    const typeLabel = p.type === 'percent_off' ? `${p.value}% off` : p.type === 'amount_off' ? `$${parseFloat(p.value).toFixed(2)} off` : 'Free delivery';
+    const expires = p.expires_at ? new Date(p.expires_at).toLocaleDateString('en-CA') : 'Never';
+    const usage = p.usage_limit ? `${p.usage_count}/${p.usage_limit} used` : `${p.usage_count} used`;
+    const expired = p.expires_at && new Date(p.expires_at) < new Date();
+    return `
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${p.is_active && !expired ? 'var(--green)' : 'var(--text2)'};border-radius:4px;padding:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--accent)">${p.code}</span>
+            <span style="padding:2px 8px;border-radius:3px;font-size:11px;font-family:var(--mono);background:${p.is_active && !expired ? '#122212' : '#221212'};color:${p.is_active && !expired ? 'var(--green)' : 'var(--red)'}">${expired ? 'EXPIRED' : p.is_active ? 'ACTIVE' : 'DISABLED'}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:4px;font-weight:600;">${typeLabel} · Min order: ${p.minimum_order > 0 ? '$'+parseFloat(p.minimum_order).toFixed(2) : 'None'}</div>
+          <div style="font-size:12px;color:var(--text2);">Applies to: ${p.applies_to} · ${usage} · Expires: ${expires}</div>
+          ${p.description ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;font-style:italic">${p.description}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label class="toggle" title="${p.is_active ? 'Disable' : 'Enable'}">
+            <input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="togglePromo('${p.id}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <button class="btn btn-ghost btn-sm" onclick="editPromo('${p.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePromo('${p.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updatePromoValueLabel() {
+  const type = document.getElementById('promo-type').value;
+  const group = document.getElementById('promo-value-group');
+  const label = document.getElementById('promo-value-label');
+  if (type === 'free_delivery') {
+    group.style.display = 'none';
+  } else {
+    group.style.display = 'block';
+    label.textContent = type === 'percent_off' ? 'Discount Value (%)' : 'Discount Amount (CAD)';
+  }
+}
+
+function openPromoModal() {
+  editingPromoId = null;
+  document.getElementById('promo-modal-title').textContent = 'Add Promo Code';
+  document.getElementById('promo-code').value = '';
+  document.getElementById('promo-type').value = 'percent_off';
+  document.getElementById('promo-value').value = '';
+  document.getElementById('promo-min').value = '';
+  document.getElementById('promo-applies').value = 'both';
+  document.getElementById('promo-limit').value = '';
+  document.getElementById('promo-expiry').value = '';
+  document.getElementById('promo-desc').value = '';
+  updatePromoValueLabel();
+  document.getElementById('promo-modal').classList.add('open');
+}
+
+async function editPromo(id) {
+  const { data } = await db.from('promo_codes').select('*').eq('id', id).single();
+  if (!data) return;
+  editingPromoId = id;
+  document.getElementById('promo-modal-title').textContent = 'Edit Promo Code';
+  document.getElementById('promo-code').value = data.code;
+  document.getElementById('promo-type').value = data.type;
+  document.getElementById('promo-value').value = data.value || '';
+  document.getElementById('promo-min').value = data.minimum_order || '';
+  document.getElementById('promo-applies').value = data.applies_to || 'both';
+  document.getElementById('promo-limit').value = data.usage_limit || '';
+  document.getElementById('promo-expiry').value = data.expires_at ? new Date(data.expires_at).toISOString().slice(0,16) : '';
+  document.getElementById('promo-desc').value = data.description || '';
+  updatePromoValueLabel();
+  document.getElementById('promo-modal').classList.add('open');
+}
+
+async function savePromo() {
+  const code = document.getElementById('promo-code').value.trim().toUpperCase();
+  const type = document.getElementById('promo-type').value;
+  const value = parseFloat(document.getElementById('promo-value').value) || 0;
+  const minimum_order = parseFloat(document.getElementById('promo-min').value) || 0;
+  const applies_to = document.getElementById('promo-applies').value;
+  const usage_limit = parseInt(document.getElementById('promo-limit').value) || null;
+  const expires_raw = document.getElementById('promo-expiry').value;
+  const expires_at = expires_raw ? new Date(expires_raw).toISOString() : null;
+  const description = document.getElementById('promo-desc').value.trim();
+
+  if (!code) return toast('Promo code required', 'error');
+  if (type !== 'free_delivery' && !value) return toast('Discount value required', 'error');
+
+  const payload = { code, type, value, minimum_order, applies_to, usage_limit, expires_at, description };
+
+  if (editingPromoId) {
+    await db.from('promo_codes').update(payload).eq('id', editingPromoId);
+  } else {
+    await db.from('promo_codes').insert(payload);
+  }
+  closeModal('promo-modal');
+  loadPromos();
+  toast('Promo code saved', 'success');
+}
+
+async function togglePromo(id, active) {
+  await db.from('promo_codes').update({ is_active: active }).eq('id', id);
+  loadPromos();
+  toast(active ? 'Promo enabled' : 'Promo disabled', 'success');
+}
+
+async function deletePromo(id) {
+  if (!confirm('Delete this promo code?')) return;
+  await db.from('promo_codes').delete().eq('id', id);
+  loadPromos();
+  toast('Promo code deleted', 'success');
 }
 
 // ============ UTILITIES ============
