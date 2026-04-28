@@ -1896,6 +1896,8 @@ function OrderPage() {
               )}
               {promoError && <p style={{ color: '#da0908', fontSize: '0.82rem', marginTop: '6px' }}>{promoError}</p>}
             </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Special Instructions (optional)</label>
               <textarea placeholder="Allergies, special requests, delivery notes..." value={form.instructions}
                 onChange={e => setForm(p => ({ ...p, instructions: e.target.value }))}
                 rows="3"
