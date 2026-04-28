@@ -1350,9 +1350,9 @@ async function confirmAccept() {
   updateBadges();
   toast('Order accepted', 'success');
 
-  // Send confirmation email
-  if (order.customerEmail) {
-    const fullOrder = allOrders.find(o => o.id === order.id);
+  // Send confirmation email using full order data
+  const fullOrder = allOrders.find(o => o.id === order.id);
+  if (fullOrder && fullOrder.customer_email) {
     await sendAcceptEmail(fullOrder, estTime);
   }
 }
@@ -1383,8 +1383,10 @@ async function confirmReject() {
   toast('Order rejected', 'success');
 
   // Send rejection email
-  if (order.customerEmail) {
-    await sendRejectEmail(order, reason);
+  if (order.customerEmail || order.customer_email) {
+    const emailAddr = order.customerEmail || order.customer_email;
+    const fullOrder = allOrders.find(o => o.id === order.id) || order;
+    await sendRejectEmail({...fullOrder, customer_email: emailAddr}, reason);
   }
 }
 
