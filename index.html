@@ -2037,9 +2037,8 @@ function AboutPage() {
 }
 
 // ── CONTACT PAGE ──
-function ContactPage({ setPage, tweaks }) {
+function ContactPage({ setPage }) {
   const db = useSupabase();
-  const { showContactForm } = tweaks;
   const [resvForm, setResvForm] = useState({ name: '', phone: '', email: '', party_size: '2', date: '', time: '', requests: '' });
   const [resvSent, setResvSent] = useState(false);
   const [resvSubmitting, setResvSubmitting] = useState(false);
