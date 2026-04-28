@@ -280,6 +280,14 @@
   .settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 16px; max-width: 600px; }
   .settings-section h3 { font-family: var(--mono); font-size: 14px; color: var(--text2); text-transform: uppercase; margin-bottom: 16px; letter-spacing: 0.5px; }
 
+  .reject-reason-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 14px; text-align: left; cursor: pointer; border-radius: 3px;
+    font-size: 13px; font-family: var(--sans); transition: all 0.15s;
+  }
+  .reject-reason-btn:hover { border-color: var(--red); color: var(--red); }
+  .reject-reason-btn.selected { border-color: var(--red); background: #221212; color: var(--red); }
+
   /* TOAST */
   #toast {
     position: fixed; bottom: 24px; right: 24px; background: var(--surface);
@@ -643,6 +651,57 @@
   </div>
 </div>
 
+<!-- ACCEPT MODAL -->
+<div class="modal-overlay" id="accept-modal">
+  <div class="modal" style="max-width:440px">
+    <h2>Accept Order</h2>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Set an estimated time and confirm acceptance. A confirmation email will be sent to the customer.</p>
+    <div class="form-group">
+      <label class="form-label">Estimated Time</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(15)">15 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(20)">20 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(25)">25 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(30)">30 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(45)">45 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="setEstTime(60)">60 min</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input class="form-input" id="est-time-input" type="number" placeholder="Custom (minutes)" style="max-width:180px">
+        <span style="font-size:13px;color:var(--text2)">minutes</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('accept-modal')">Cancel</button>
+      <button class="btn-accept" onclick="confirmAccept()" style="padding:9px 20px;border-radius:3px">✓ Confirm Accept</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal" style="max-width:440px">
+    <h2>Reject Order</h2>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Select a reason. This will be included in the rejection email to the customer.</p>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        <button class="reject-reason-btn" onclick="setRejectReason('Out of ingredients for your order')">Out of ingredients</button>
+        <button class="reject-reason-btn" onclick="setRejectReason('Too busy / at capacity right now')">Too busy / at capacity</button>
+        <button class="reject-reason-btn" onclick="setRejectReason('Your address is outside our delivery zone')">Outside delivery zone</button>
+        <button class="reject-reason-btn" onclick="setRejectReason('Restaurant is closing soon')">Restaurant closing soon</button>
+        <button class="reject-reason-btn" onclick="setRejectReason('We were unable to reach you by phone')">Unable to reach customer</button>
+        <button class="reject-reason-btn" onclick="setRejectReason('')">Custom reason...</button>
+      </div>
+      <textarea class="form-input" id="reject-reason-input" rows="3" placeholder="Reason for rejection (customer will see this)"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('reject-modal')">Cancel</button>
+      <button class="btn-reject" onclick="confirmReject()" style="padding:9px 20px;border-radius:3px;background:var(--red);color:white">✕ Confirm Reject</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <audio id="notification-sound" preload="auto">
@@ -813,8 +872,8 @@ function renderOrderCard(order) {
   let actions = '';
   if (order.status === 'pending') {
     actions = `
-      <button class="btn-accept" onclick="updateOrderStatus('${order.id}', 'accepted')">✓ Accept</button>
-      <button class="btn-reject" onclick="updateOrderStatus('${order.id}', 'rejected')">✕ Reject</button>
+      <button class="btn-accept" onclick="openAcceptModal('${order.id}', '${order.order_type}', '${order.customer_name}', '${order.customer_email || ''}', '${order.customer_phone}', '${order.total}')">✓ Accept</button>
+      <button class="btn-reject" onclick="openRejectModal('${order.id}', '${order.customer_name}', '${order.customer_email || ''}')">✕ Reject</button>
     `;
   } else if (order.status === 'accepted') {
     actions = `<button class="btn-ready" onclick="updateOrderStatus('${order.id}', 'ready')">Mark Ready</button>`;
@@ -1261,6 +1320,159 @@ async function saveTaxSettings() {
   if (isNaN(rate) || rate < 0 || rate > 100) return toast('Enter a valid tax rate (0-100)', 'error');
   await setSetting('tax_rate', rate.toString());
   toast(`Tax rate set to ${rate}%`, 'success');
+}
+
+// ============ ACCEPT / REJECT MODALS ============
+const RESEND_API_KEY = 're_jbafPhvU_CbHEtpSBUqmVXUVAD8yQLUKU';
+const FROM_EMAIL = 'Kakalots Restaurant <onboarding@resend.dev>';
+
+let pendingAcceptOrder = null;
+let pendingRejectOrder = null;
+
+function openAcceptModal(id, orderType, customerName, customerEmail, customerPhone, total) {
+  pendingAcceptOrder = { id, orderType, customerName, customerEmail, customerPhone, total };
+  document.getElementById('est-time-input').value = '';
+  document.getElementById('accept-modal').classList.add('open');
+}
+
+function setEstTime(mins) {
+  document.getElementById('est-time-input').value = mins;
+}
+
+async function confirmAccept() {
+  const estTime = parseInt(document.getElementById('est-time-input').value);
+  if (!estTime || estTime < 1) return toast('Please enter an estimated time', 'error');
+  const order = pendingAcceptOrder;
+  await db.from('orders').update({ status: 'accepted', estimated_time: estTime, updated_at: new Date().toISOString() }).eq('id', order.id);
+  const idx = allOrders.findIndex(o => o.id === order.id);
+  if (idx !== -1) { allOrders[idx].status = 'accepted'; allOrders[idx].estimated_time = estTime; }
+  closeModal('accept-modal');
+  renderOrders();
+  updateBadges();
+  toast('Order accepted', 'success');
+
+  // Send confirmation email
+  if (order.customerEmail) {
+    const fullOrder = allOrders.find(o => o.id === order.id);
+    await sendAcceptEmail(fullOrder, estTime);
+  }
+}
+
+function openRejectModal(id, customerName, customerEmail) {
+  pendingRejectOrder = { id, customerName, customerEmail };
+  document.getElementById('reject-reason-input').value = '';
+  document.querySelectorAll('.reject-reason-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('reject-modal').classList.add('open');
+}
+
+function setRejectReason(reason) {
+  document.getElementById('reject-reason-input').value = reason;
+  document.querySelectorAll('.reject-reason-btn').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+
+async function confirmReject() {
+  const reason = document.getElementById('reject-reason-input').value.trim();
+  if (!reason) return toast('Please select or enter a reason', 'error');
+  const order = pendingRejectOrder;
+  await db.from('orders').update({ status: 'rejected', updated_at: new Date().toISOString() }).eq('id', order.id);
+  const idx = allOrders.findIndex(o => o.id === order.id);
+  if (idx !== -1) allOrders[idx].status = 'rejected';
+  closeModal('reject-modal');
+  renderOrders();
+  updateBadges();
+  toast('Order rejected', 'success');
+
+  // Send rejection email
+  if (order.customerEmail) {
+    await sendRejectEmail(order, reason);
+  }
+}
+
+// ============ EMAIL FUNCTIONS ============
+async function sendAcceptEmail(order, estTime) {
+  try {
+    const items = (order.items || []).map(i =>
+      `<tr><td style="padding:6px 0;border-bottom:1px solid #f0f0f0">${i.qty}x ${i.name}${i.options ? '<br><small style="color:#888">'+i.options+'</small>' : ''}</td><td style="text-align:right;padding:6px 0;border-bottom:1px solid #f0f0f0;font-family:monospace">$${(i.price*i.qty).toFixed(2)}</td></tr>`
+    ).join('');
+
+    const html = `
+      <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#fff">
+        <div style="background:#da0908;padding:28px 32px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:0.04em">🥢 KAKALOTS</h1>
+          <p style="color:#ffcccc;margin:6px 0 0;font-size:13px">496 Anderson Dr, Quesnel BC · 778-414-6789</p>
+        </div>
+        <div style="padding:32px">
+          <div style="background:#f0faf4;border:1px solid #4caf7d;border-radius:4px;padding:16px 20px;margin-bottom:24px;text-align:center">
+            <p style="margin:0;font-size:18px;font-weight:700;color:#2d7a4f">✓ Order Confirmed!</p>
+            <p style="margin:6px 0 0;color:#555;font-size:14px">Your order has been accepted and is being prepared</p>
+          </div>
+          <p style="color:#333;font-size:15px">Hi <strong>${order.customer_name}</strong>,</p>
+          <p style="color:#555;font-size:14px;line-height:1.7">Great news! We've accepted your order. Estimated time: <strong style="color:#da0908">${estTime} minutes</strong>.</p>
+          <div style="background:#fdf5f5;border-radius:4px;padding:6px 16px;margin:20px 0">
+            <p style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin:12px 0 8px">Order #${order.order_number} · ${order.order_type === 'pickup' ? '🥡 Pickup' : '🛵 Delivery'}</p>
+            <table style="width:100%;border-collapse:collapse">${items}</table>
+            <table style="width:100%;border-collapse:collapse;margin-top:8px">
+              <tr><td style="padding:4px 0;font-size:13px;color:#555">Subtotal</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.subtotal).toFixed(2)}</td></tr>
+              ${order.delivery_fee > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#555">Delivery Fee</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.delivery_fee).toFixed(2)}</td></tr>` : ''}
+              ${order.discount > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#4caf7d">Promo${order.promo_code ? ' ('+order.promo_code+')' : ''}</td><td style="text-align:right;font-size:13px;color:#4caf7d">-$${parseFloat(order.discount).toFixed(2)}</td></tr>` : ''}
+              ${order.tax > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#555">Tax</td><td style="text-align:right;font-size:13px;color:#555">$${parseFloat(order.tax).toFixed(2)}</td></tr>` : ''}
+              <tr><td style="padding:8px 0 4px;font-weight:700;border-top:2px solid #da0908">Total</td><td style="text-align:right;font-weight:700;color:#da0908;border-top:2px solid #da0908;padding-top:8px">$${parseFloat(order.total).toFixed(2)}</td></tr>
+            </table>
+          </div>
+          <div style="background:#fff8e1;border:1px solid #C8960C;border-radius:4px;padding:14px 18px;margin:20px 0">
+            <p style="margin:0;font-size:14px;color:#333">💳 <strong>Payment:</strong> ${order.order_type === 'pickup' ? 'Please pay at our counter when you pick up your order. Cash or card accepted.' : 'Please have payment ready for your delivery driver. Cash or card accepted.'}</p>
+          </div>
+          ${order.order_type === 'pickup' ? `<p style="color:#555;font-size:14px">📍 <strong>Pickup at:</strong> 496 Anderson Dr, Quesnel BC</p>` : `<p style="color:#555;font-size:14px">📍 <strong>Delivering to:</strong> ${order.delivery_address}</p>`}
+          <p style="color:#888;font-size:13px;margin-top:24px">Questions? Call us at <a href="tel:7784146789" style="color:#da0908">778-414-6789</a></p>
+        </div>
+        <div style="background:#1a1a1a;padding:16px;text-align:center">
+          <p style="color:#888;font-size:12px;margin:0">Kakalots Restaurant · 家家樂酒家 · Quesnel, BC</p>
+        </div>
+      </div>`;
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM_EMAIL, to: order.customer_email, subject: `✓ Order #${order.order_number} Confirmed — Ready in ${estTime} min`, html })
+    });
+  } catch(e) { console.error('Email send failed:', e); }
+}
+
+async function sendRejectEmail(order, reason) {
+  try {
+    const html = `
+      <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#fff">
+        <div style="background:#da0908;padding:28px 32px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:0.04em">🥢 KAKALOTS</h1>
+          <p style="color:#ffcccc;margin:6px 0 0;font-size:13px">496 Anderson Dr, Quesnel BC · 778-414-6789</p>
+        </div>
+        <div style="padding:32px">
+          <div style="background:#fff0f0;border:1px solid #da0908;border-radius:4px;padding:16px 20px;margin-bottom:24px;text-align:center">
+            <p style="margin:0;font-size:18px;font-weight:700;color:#da0908">Order #${order.id} — Unable to Process</p>
+          </div>
+          <p style="color:#333;font-size:15px">Hi <strong>${order.customerName}</strong>,</p>
+          <p style="color:#555;font-size:14px;line-height:1.7">We're sorry, but we're unable to fulfill your order at this time.</p>
+          <div style="background:#fdf5f5;border-left:4px solid #da0908;padding:14px 18px;margin:20px 0">
+            <p style="margin:0;font-size:14px;color:#333"><strong>Reason:</strong> ${reason}</p>
+          </div>
+          <p style="color:#555;font-size:14px;line-height:1.7">We apologize for the inconvenience. Please call us directly and we'll do our best to help.</p>
+          <div style="text-align:center;margin:28px 0">
+            <a href="tel:7784146789" style="background:#da0908;color:#fff;padding:14px 28px;text-decoration:none;font-weight:700;border-radius:3px;font-size:15px">Call Us: 778-414-6789</a>
+          </div>
+          <p style="color:#888;font-size:13px">You have not been charged. No payment was processed.</p>
+        </div>
+        <div style="background:#1a1a1a;padding:16px;text-align:center">
+          <p style="color:#888;font-size:12px;margin:0">Kakalots Restaurant · 家家樂酒家 · Quesnel, BC</p>
+        </div>
+      </div>`;
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM_EMAIL, to: order.customerEmail, subject: `Order Update — Kakalots Restaurant`, html })
+    });
+  } catch(e) { console.error('Email send failed:', e); }
 }
 
 // ============ PROMOS ============
