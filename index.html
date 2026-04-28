@@ -1423,7 +1423,7 @@ function OrderPage() {
   const [itemModal, setItemModal] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [qty, setQty] = useState(1);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', postal: '', instructions: '' });
+  const [form, setForm] = useState({ name: '', phone: '', address: '', postal: '', instructions: '', payment_method: '' });
   const [submitting, setSubmitting] = useState(false);
   const [orderNum, setOrderNum] = useState(null);
   const [zoneError, setZoneError] = useState('');
@@ -1535,6 +1535,7 @@ function OrderPage() {
     if (!form.name || !form.phone) return alert('Please fill in your name and phone number.');
     if (orderType === 'delivery') {
       if (!form.address || !form.postal) return alert('Please fill in your delivery address and postal code.');
+      if (!form.payment_method) return alert('Please select how you will pay the delivery driver.');
       if (!checkPostal(form.postal)) return;
     }
     setSubmitting(true);
@@ -1554,6 +1555,7 @@ function OrderPage() {
       tax: taxAmount,
       total: grandTotal,
       special_instructions: form.instructions,
+      payment_method: orderType === 'delivery' ? form.payment_method : 'in_store',
       status: 'pending'
     }).select().single();
     setSubmitting(false);
@@ -1594,7 +1596,7 @@ function OrderPage() {
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
         <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
-        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', instructions: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); }}>Place Another Order</button>
+        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', instructions: '', payment_method: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); }}>Place Another Order</button>
       </div>
     </>
   );
@@ -1649,51 +1651,97 @@ function OrderPage() {
         <p className="chinese">網上訂餐 · {orderType === 'pickup' ? '自取' : '外送'}</p>
       </div>
       <GreekBorder />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '220px 1fr 300px', gap: '24px', alignItems: 'start' }}>
 
-        {/* CATEGORIES */}
-        <div style={{ background: '#fff', border: '1px solid #f0d0d0', position: 'sticky', top: '80px' }}>
-          <div style={{ background: '#da0908', color: '#fff', padding: '12px 16px', fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '0.9rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Menu</div>
-          {categories.map(cat => (
-            <div key={cat.id} onClick={() => setSelectedCat(cat.id)}
-              style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: selectedCat === cat.id ? '700' : '400',
-                color: selectedCat === cat.id ? '#da0908' : '#333', borderLeft: selectedCat === cat.id ? '3px solid #da0908' : '3px solid transparent',
-                borderBottom: '1px solid #f9f0f0', transition: 'all 0.15s', background: selectedCat === cat.id ? '#fdf5f5' : 'transparent' }}>
-              {cat.name}
-            </div>
-          ))}
+      {/* CATEGORY NAV — horizontal scroll on mobile, vertical sidebar on desktop */}
+      <style>{`
+        @media (max-width: 768px) {
+          .menu-outer { display: block !important; padding-bottom: 100px !important; }
+          .cat-sidebar { position: sticky !important; top: 0 !important; z-index: 10; display: flex !important; flex-direction: row !important; overflow-x: auto !important; overflow-y: hidden !important; border-bottom: 2px solid #da0908 !important; scrollbar-width: none; background: #fff; }
+          .cat-sidebar::-webkit-scrollbar { display: none; }
+          .cat-sidebar-inner { display: flex !important; flex-direction: row !important; width: max-content; }
+          .cat-sidebar-title { display: none !important; }
+          .cat-item-mobile { padding: 10px 16px !important; white-space: nowrap; border-left: none !important; border-bottom: 3px solid transparent; font-size: 0.88rem !important; }
+          .cat-item-mobile.active { border-bottom: 3px solid #da0908 !important; border-left: none !important; background: #fdf5f5; }
+          .items-col { padding: 0 !important; }
+          .cart-desktop { display: none !important; }
+          .cart-mobile-bar { display: flex !important; }
+          .menu-items-header { padding: 16px 16px 8px !important; font-size: 1.2rem !important; }
+          .item-row-mobile { margin: 0 12px 8px !important; }
+          .checkout-grid { grid-template-columns: 1fr !important; }
+          .checkout-summary-col { position: static !important; }
+        }
+        @media (min-width: 769px) {
+          .cart-mobile-bar { display: none !important; }
+          .cat-sidebar-inner { display: block !important; }
+          .cat-sidebar { overflow-x: visible !important; }
+        }
+        .cart-mobile-bar {
+          position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+          background: #da0908; color: #fff; padding: 16px 20px;
+          display: none; align-items: center; justify-content: space-between;
+          box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+        }
+        .cart-mobile-bar .cart-mb-left { display: flex; align-items: center; gap: 12px; }
+        .cart-mb-badge { background: #fff; color: #da0908; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+        .cart-mb-total { font-size: 1.1rem; font-weight: 700; font-family: monospace; }
+        .cart-mb-btn { background: #fff; color: #da0908; border: none; padding: 10px 20px; font-weight: 700; font-family: monospace; font-size: 0.9rem; border-radius: 3px; cursor: pointer; }
+      `}</style>
+
+      <div className="menu-outer" style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 0 24px', display: 'grid', gridTemplateColumns: '220px 1fr 300px', gap: '24px', alignItems: 'start' }}>
+
+        {/* CATEGORY SIDEBAR */}
+        <div className="cat-sidebar" style={{ background: '#fff', border: '1px solid #f0d0d0', position: 'sticky', top: '80px' }}>
+          <div className="cat-sidebar-title" style={{ background: '#da0908', color: '#fff', padding: '12px 16px', fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '0.9rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Menu</div>
+          <div className="cat-sidebar-inner">
+            {categories.map(cat => (
+              <div key={cat.id} onClick={() => { setSelectedCat(cat.id); document.querySelector('.items-col')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                className={`cat-item-mobile ${selectedCat === cat.id ? 'active' : ''}`}
+                style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '0.9rem',
+                  fontWeight: selectedCat === cat.id ? '700' : '400',
+                  color: selectedCat === cat.id ? '#da0908' : '#333',
+                  borderLeft: selectedCat === cat.id ? '3px solid #da0908' : '3px solid transparent',
+                  borderBottom: '1px solid #f9f0f0', transition: 'all 0.15s',
+                  background: selectedCat === cat.id ? '#fdf5f5' : 'transparent' }}>
+                {cat.name}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ITEMS */}
-        <div>
+        <div className="items-col" style={{ padding: '8px 0' }}>
           {currentCat && (
             <>
-              <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', color: '#1a1a1a', marginBottom: '4px' }}>{currentCat.name}</h2>
+              <h2 className="menu-items-header" style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', color: '#1a1a1a', marginBottom: '4px', padding: '0 0 8px' }}>{currentCat.name}</h2>
               {currentCat.description && <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '16px' }}>{currentCat.description}</p>}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {(currentCat.items || []).filter(i => i.is_active && i.is_available).map(item => (
                   <div key={item.id} onClick={() => openItem(item)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid #f0d0d0', background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s', gap: '12px' }}
+                    className="item-row-mobile"
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', border: '1px solid #f0d0d0', background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s', gap: '12px', borderRadius: '2px' }}
                     onMouseEnter={e => e.currentTarget.style.borderColor='#da0908'}
                     onMouseLeave={e => e.currentTarget.style.borderColor='#f0d0d0'}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '700', fontSize: '0.95rem', marginBottom: '4px' }}>{item.name}</div>
-                      {item.description && <div style={{ fontSize: '0.82rem', color: '#888', lineHeight: '1.5' }}>{item.description}</div>}
-                      {item.option_groups?.length > 0 && <div style={{ fontSize: '0.78rem', color: '#C8960C', marginTop: '4px' }}>Customizable</div>}
+                      <div style={{ fontWeight: '700', fontSize: '0.95rem', marginBottom: '3px' }}>{item.name}</div>
+                      {item.description && <div style={{ fontSize: '0.82rem', color: '#888', lineHeight: '1.4' }}>{item.description}</div>}
+                      {item.option_groups?.length > 0 && <div style={{ fontSize: '0.75rem', color: '#C8960C', marginTop: '3px' }}>Customizable</div>}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                       <span style={{ fontFamily: 'monospace', fontWeight: '700', color: '#da0908', fontSize: '0.95rem' }}>${parseFloat(item.price).toFixed(2)}</span>
-                      <span style={{ background: '#da0908', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '700', lineHeight: 1 }}>+</span>
+                      <span style={{ background: '#da0908', color: '#fff', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: '700', lineHeight: 1, flexShrink: 0 }}>+</span>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           )}
+          <div style={{ padding: '20px 0 8px' }}>
+            <button onClick={() => setStep('type')} style={{ background: 'none', border: 'none', color: '#888', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}>← Change order type</button>
+          </div>
         </div>
 
-        {/* CART */}
-        <div style={{ background: '#fff', border: '2px solid #da0908', position: 'sticky', top: '80px' }}>
+        {/* CART — desktop only */}
+        <div className="cart-desktop" style={{ background: '#fff', border: '2px solid #da0908', position: 'sticky', top: '80px' }}>
           <div style={{ background: '#da0908', color: '#fff', padding: '14px 16px', fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Your Order</span>
             <span style={{ background: '#fff', color: '#da0908', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>{cart.reduce((s, i) => s + i.qty, 0)}</span>
@@ -1745,26 +1793,40 @@ function OrderPage() {
         </div>
       </div>
 
+      {/* MOBILE CART BAR — fixed bottom */}
+      {cart.length > 0 && (
+        <div className="cart-mobile-bar">
+          <div className="cart-mb-left">
+            <div className="cart-mb-badge">{cart.reduce((s, i) => s + i.qty, 0)}</div>
+            <div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.85 }}>Your order</div>
+              <div className="cart-mb-total">${grandTotal.toFixed(2)}</div>
+            </div>
+          </div>
+          <button className="cart-mb-btn" onClick={() => setStep('checkout')}>Checkout →</button>
+        </div>
+      )}
+
       {/* ITEM MODAL */}
       {itemModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500, padding: '16px' }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 500 }}
           onClick={e => { if (e.target === e.currentTarget) setItemModal(null); }}>
-          <div style={{ background: '#fff', maxWidth: '520px', width: '100%', maxHeight: '85vh', overflowY: 'auto', borderTop: '4px solid #da0908' }}>
-            <div style={{ padding: '24px' }}>
+          <div style={{ background: '#fff', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', borderTop: '4px solid #da0908', borderRadius: '12px 12px 0 0' }}>
+            <div style={{ padding: '20px 20px 32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', flex: 1 }}>{itemModal.name}</h2>
-                <button onClick={() => setItemModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#888', marginLeft: '12px' }}>✕</button>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', flex: 1, lineHeight: 1.3 }}>{itemModal.name}</h2>
+                <button onClick={() => setItemModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#888', marginLeft: '12px', padding: '0 4px' }}>✕</button>
               </div>
-              {itemModal.description && <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '16px', lineHeight: '1.6' }}>{itemModal.description}</p>}
-              <p style={{ fontFamily: 'monospace', fontSize: '1.1rem', color: '#da0908', fontWeight: '700', marginBottom: '20px' }}>${parseFloat(itemModal.price).toFixed(2)}</p>
+              {itemModal.description && <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '12px', lineHeight: '1.6' }}>{itemModal.description}</p>}
+              <p style={{ fontFamily: 'monospace', fontSize: '1.1rem', color: '#da0908', fontWeight: '700', marginBottom: '16px' }}>${parseFloat(itemModal.price).toFixed(2)}</p>
 
               {(itemModal.option_groups || []).map(group => (
-                <div key={group.id} style={{ marginBottom: '20px' }}>
-                  <div style={{ fontWeight: '700', fontSize: '0.88rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', color: '#1a1a1a' }}>
-                    {group.name} {group.required && <span style={{ color: '#da0908', fontSize: '0.75rem' }}>*Required</span>}
+                <div key={group.id} style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', color: '#1a1a1a', padding: '6px 0', borderBottom: '1px solid #f0d0d0' }}>
+                    {group.name} {group.required && <span style={{ color: '#da0908', fontSize: '0.72rem' }}>*Required</span>}
                   </div>
                   {(group.options || []).map(opt => (
-                    <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f9f0f0', cursor: 'pointer' }}>
+                    <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid #f9f0f0', cursor: 'pointer' }}>
                       <input type={group.max_select === 1 ? 'radio' : 'checkbox'}
                         name={`group-${group.id}`}
                         onChange={() => {
@@ -1775,25 +1837,25 @@ function OrderPage() {
                             return { ...prev, [group.id]: exists ? cur.filter(o => o.id !== opt.id) : [...cur, opt] };
                           });
                         }}
-                        style={{ accentColor: '#da0908' }} />
-                      <span style={{ flex: 1, fontSize: '0.9rem' }}>{opt.name}</span>
-                      {parseFloat(opt.additional_price) > 0 && <span style={{ fontFamily: 'monospace', color: '#C8960C', fontSize: '0.85rem' }}>+${parseFloat(opt.additional_price).toFixed(2)}</span>}
+                        style={{ accentColor: '#da0908', width: '18px', height: '18px' }} />
+                      <span style={{ flex: 1, fontSize: '0.95rem' }}>{opt.name}</span>
+                      {parseFloat(opt.additional_price) > 0 && <span style={{ fontFamily: 'monospace', color: '#C8960C', fontSize: '0.88rem' }}>+${parseFloat(opt.additional_price).toFixed(2)}</span>}
                     </label>
                   ))}
                 </div>
               ))}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '16px 0', padding: '12px 0', borderTop: '1px solid #f0d0d0', borderBottom: '1px solid #f0d0d0' }}>
                 <span style={{ fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>Quantity</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: '32px', height: '32px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '1.1rem', borderRadius: '3px' }}>−</button>
-                  <span style={{ fontFamily: 'monospace', fontWeight: '700', minWidth: '24px', textAlign: 'center' }}>{qty}</span>
-                  <button onClick={() => setQty(q => q + 1)} style={{ width: '32px', height: '32px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '1.1rem', borderRadius: '3px' }}>+</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: '36px', height: '36px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '1.2rem', borderRadius: '50%' }}>−</button>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '1.1rem', minWidth: '28px', textAlign: 'center' }}>{qty}</span>
+                  <button onClick={() => setQty(q => q + 1)} style={{ width: '36px', height: '36px', border: '1px solid #da0908', background: '#da0908', color: '#fff', cursor: 'pointer', fontSize: '1.2rem', borderRadius: '50%' }}>+</button>
                 </div>
               </div>
 
-              <button className="btn-primary" style={{ width: '100%', textAlign: 'center' }} onClick={addToCart}>
-                Add to Order — ${(parseFloat(itemModal.price) + Object.values(selectedOptions).flat().reduce((s, o) => s + parseFloat(o.additional_price || 0), 0)).toFixed(2) * qty > 0 ? ((parseFloat(itemModal.price) + Object.values(selectedOptions).flat().reduce((s, o) => s + parseFloat(o.additional_price || 0), 0)) * qty).toFixed(2) : '0.00'}
+              <button className="btn-primary" style={{ width: '100%', textAlign: 'center', padding: '16px', fontSize: '1rem' }} onClick={addToCart}>
+                Add to Order — ${((parseFloat(itemModal.price) + Object.values(selectedOptions).flat().reduce((s, o) => s + parseFloat(o.additional_price || 0), 0)) * qty).toFixed(2)}
               </button>
             </div>
           </div>
@@ -1807,7 +1869,7 @@ function OrderPage() {
     <>
       <div className="page-banner"><h1>Checkout</h1><p className="chinese">結帳</p></div>
       <GreekBorder />
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 16px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', alignItems: 'start' }}>
+      <div className="checkout-grid" style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 16px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', alignItems: 'start' }}>
         <div>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', marginBottom: '24px', color: '#da0908' }}>Your Details</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1844,6 +1906,19 @@ function OrderPage() {
                   {zoneError && <p style={{ color: '#da0908', fontSize: '0.82rem', marginTop: '6px' }}>{zoneError}</p>}
                   {!zoneError && form.zoneId && <p style={{ color: '#4caf7d', fontSize: '0.82rem', marginTop: '6px' }}>✓ Delivery available to your area</p>}
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', color: '#333' }}>Payment Method for Driver *</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', border: `2px solid ${form.payment_method === 'cash' ? '#da0908' : '#ddd'}`, borderRadius: '3px', cursor: 'pointer', background: form.payment_method === 'cash' ? '#fdf5f5' : '#fff', transition: 'all 0.15s' }}>
+                      <input type="radio" name="payment_method" value="cash" checked={form.payment_method === 'cash'} onChange={e => setForm(p => ({ ...p, payment_method: e.target.value }))} style={{ accentColor: '#da0908' }} />
+                      <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>💵 Cash</span>
+                    </label>
+                    <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', border: `2px solid ${form.payment_method === 'card' ? '#da0908' : '#ddd'}`, borderRadius: '3px', cursor: 'pointer', background: form.payment_method === 'card' ? '#fdf5f5' : '#fff', transition: 'all 0.15s' }}>
+                      <input type="radio" name="payment_method" value="card" checked={form.payment_method === 'card'} onChange={e => setForm(p => ({ ...p, payment_method: e.target.value }))} style={{ accentColor: '#da0908' }} />
+                      <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>💳 Card</span>
+                    </label>
+                  </div>
+                </div>
               </>
             )}
             <div>
@@ -1873,7 +1948,11 @@ function OrderPage() {
             </div>
           </div>
           <div style={{ background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '16px', marginTop: '20px', borderRadius: '3px' }}>
-            <p style={{ fontSize: '0.88rem', color: '#555' }}>💳 <strong>Payment:</strong> Cash or card, paid {orderType === 'pickup' ? 'at our pickup counter' : 'to your delivery driver'}. No payment required online.</p>
+            <p style={{ fontSize: '0.88rem', color: '#555' }}>
+              {orderType === 'pickup'
+                ? '💳 Payment: Cash or card, paid at our pickup counter.'
+                : `${form.payment_method === 'cash' ? '💵' : form.payment_method === 'card' ? '💳' : '💳'} Payment: ${form.payment_method === 'cash' ? 'Cash' : form.payment_method === 'card' ? 'Card' : 'Cash or card'} — paid to your delivery driver.`}
+            </p>
           </div>
           <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
             <button className="btn-secondary" onClick={() => setStep('menu')}>← Back to Menu</button>
@@ -1884,7 +1963,7 @@ function OrderPage() {
         </div>
 
         {/* ORDER SUMMARY */}
-        <div style={{ background: '#fff', border: '2px solid #da0908', position: 'sticky', top: '80px' }}>
+        <div className="checkout-summary-col" style={{ background: '#fff', border: '2px solid #da0908', position: 'sticky', top: '80px' }}>
           <div style={{ background: '#da0908', color: '#fff', padding: '14px 16px', fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1rem' }}>Order Summary</div>
           <div style={{ padding: '16px' }}>
             <div style={{ marginBottom: '8px', fontSize: '0.82rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{orderType === 'pickup' ? '🥡 Pickup' : '🛵 Delivery'}</div>
