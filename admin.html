@@ -809,6 +809,28 @@ function playNotification() {
   } catch(e) {}
 }
 
+let pendingAlertInterval = null;
+
+function startPendingAlert() {
+  if (pendingAlertInterval) return; // already running
+  playNotification();
+  pendingAlertInterval = setInterval(() => {
+    const hasPending = allOrders.some(o => o.status === 'pending');
+    if (!hasPending) {
+      stopPendingAlert();
+    } else {
+      playNotification();
+    }
+  }, 8000); // beep every 8 seconds
+}
+
+function stopPendingAlert() {
+  if (pendingAlertInterval) {
+    clearInterval(pendingAlertInterval);
+    pendingAlertInterval = null;
+  }
+}
+
 // ============ NAVIGATION ============
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -836,6 +858,8 @@ async function loadOrders() {
   allOrders = data || [];
   renderOrders();
   updateBadges();
+  // Start alert if pending orders exist when admin logs in
+  if (allOrders.some(o => o.status === 'pending')) startPendingAlert();
 }
 
 function subscribeToOrders() {
@@ -843,7 +867,7 @@ function subscribeToOrders() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
       if (payload.eventType === 'INSERT') {
         allOrders.unshift(payload.new);
-        playNotification();
+        startPendingAlert();
         showNewOrderBanner();
       } else if (payload.eventType === 'UPDATE') {
         const idx = allOrders.findIndex(o => o.id === payload.new.id);
@@ -959,6 +983,9 @@ async function updateOrderStatus(id, status) {
   if (idx !== -1) allOrders[idx].status = status;
   renderOrders();
   updateBadges();
+  // Stop beeping if no more pending orders
+  const hasPending = allOrders.some(o => o.status === 'pending');
+  if (!hasPending) stopPendingAlert();
   toast('Order updated', 'success');
 }
 
@@ -1511,6 +1538,8 @@ async function confirmAccept() {
   closeModal('accept-modal');
   renderOrders();
   updateBadges();
+  const hasPending = allOrders.some(o => o.status === 'pending');
+  if (!hasPending) stopPendingAlert();
   toast('Order accepted', 'success');
 
   // Send confirmation email using full order data
@@ -1551,6 +1580,8 @@ async function confirmReject() {
   closeModal('reject-modal');
   renderOrders();
   updateBadges();
+  const hasPendingAfterReject = allOrders.some(o => o.status === 'pending');
+  if (!hasPendingAfterReject) stopPendingAlert();
   toast('Order rejected', 'success');
 
   // Send rejection email
