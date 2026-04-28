@@ -1420,6 +1420,7 @@ function OrderPage() {
   const [settings, setSettings] = useState({});
   const [zones, setZones] = useState([]);
   const [isOpen, setIsOpen] = useState(true);
+  const [withinHours, setWithinHours] = useState(true);
   const [itemModal, setItemModal] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [qty, setQty] = useState(1);
@@ -1437,10 +1438,11 @@ function OrderPage() {
   }, []);
 
   async function loadData() {
-    const [{ data: cats }, { data: sets }, { data: zns }] = await Promise.all([
+    const [{ data: cats }, { data: sets }, { data: zns }, { data: hrs }] = await Promise.all([
       db.from('categories').select('*, items(*, option_groups(*, options(*)))').eq('is_active', true).order('position'),
       db.from('settings').select('*'),
-      db.from('delivery_zones').select('*').eq('is_active', true)
+      db.from('delivery_zones').select('*').eq('is_active', true),
+      db.from('hours').select('*')
     ]);
     setCategories(cats || []);
     setSelectedCat((cats || [])[0]?.id || null);
@@ -1449,6 +1451,21 @@ function OrderPage() {
     (sets || []).forEach(r => s[r.key] = r.value);
     setSettings(s);
     setIsOpen(s['is_open'] !== 'false');
+
+    // Check if current time is within operating hours
+    const now = new Date();
+    const day = now.getDay();
+    const todayHours = (hrs || []).find(h => h.day_of_week === day);
+    if (todayHours && !todayHours.is_closed) {
+      const [openH, openM] = todayHours.open_time.split(':').map(Number);
+      const [closeH, closeM] = todayHours.close_time.split(':').map(Number);
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const openMins = openH * 60 + openM;
+      const closeMins = closeH * 60 + closeM;
+      setWithinHours(nowMins >= openMins && nowMins < closeMins);
+    } else {
+      setWithinHours(false);
+    }
   }
 
   const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -1574,11 +1591,36 @@ function OrderPage() {
     <>
       <div className="page-banner"><h1>Order Online</h1><p className="chinese">網上訂餐</p></div>
       <GreekBorder />
-      <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🕐</div>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.8rem', marginBottom: '12px' }}>We're Currently Closed</h2>
-        <p style={{ color: '#555', marginBottom: '24px' }}>Online ordering is temporarily unavailable. Please call us or check back during business hours.</p>
-        <a href="tel:7784146789" className="btn-primary">Call: 778-414-6789</a>
+      <div style={{ textAlign: 'center', padding: '80px 24px', maxWidth: '560px', margin: '0 auto' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{withinHours ? '📞' : '🕐'}</div>
+        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.8rem', marginBottom: '12px', color: '#da0908' }}>
+          {withinHours ? 'Online Ordering Paused' : 'We\'re Currently Closed'}
+        </h2>
+        {withinHours ? (
+          <>
+            <p style={{ color: '#555', marginBottom: '16px', lineHeight: '1.7' }}>
+              Online ordering is temporarily unavailable right now, but we're open! Please call us to place your order directly.
+            </p>
+            <a href="tel:7784146789" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none', marginBottom: '16px' }}>
+              📞 Call to Order: 778-414-6789
+            </a>
+          </>
+        ) : (
+          <>
+            <p style={{ color: '#555', marginBottom: '16px', lineHeight: '1.7' }}>
+              We're not open right now. Check our hours below and come back when we're open!
+            </p>
+            <div style={{ background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '20px', borderRadius: '3px', marginBottom: '20px', textAlign: 'left', maxWidth: '320px', margin: '0 auto 20px' }}>
+              <p style={{ fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px', color: '#da0908' }}>Hours of Operation</p>
+              {[['Mon', '12:00pm – 8:30pm'], ['Tue', 'Closed'], ['Wed–Fri', '12:00pm – 8:30pm'], ['Sat–Sun', '3:00pm – 8:30pm']].map(([d, h]) => (
+                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', padding: '4px 0', borderBottom: '1px solid #f9f0f0', color: h === 'Closed' ? '#aaa' : '#333' }}>
+                  <span>{d}</span><span>{h}</span>
+                </div>
+              ))}
+            </div>
+            <a href="tel:7784146789" style={{ color: '#da0908', fontSize: '0.9rem', textDecoration: 'none' }}>Questions? Call 778-414-6789</a>
+          </>
+        )}
       </div>
     </>
   );
@@ -1656,12 +1698,12 @@ function OrderPage() {
       <style>{`
         @media (max-width: 768px) {
           .menu-outer { display: block !important; padding-bottom: 100px !important; }
-          .cat-sidebar { position: sticky !important; top: 0 !important; z-index: 10; display: flex !important; flex-direction: row !important; overflow-x: auto !important; overflow-y: hidden !important; border-bottom: 2px solid #da0908 !important; scrollbar-width: none; background: #fff; }
+          .cat-sidebar { position: sticky !important; top: 0 !important; z-index: 10; display: flex !important; flex-direction: row !important; overflow-x: auto !important; overflow-y: hidden !important; border-bottom: 3px solid #da0908 !important; scrollbar-width: none; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
           .cat-sidebar::-webkit-scrollbar { display: none; }
           .cat-sidebar-inner { display: flex !important; flex-direction: row !important; width: max-content; }
           .cat-sidebar-title { display: none !important; }
-          .cat-item-mobile { padding: 10px 16px !important; white-space: nowrap; border-left: none !important; border-bottom: 3px solid transparent; font-size: 0.88rem !important; }
-          .cat-item-mobile.active { border-bottom: 3px solid #da0908 !important; border-left: none !important; background: #fdf5f5; }
+          .cat-item-mobile { padding: 16px 22px !important; white-space: nowrap; border-left: none !important; border-bottom: 4px solid transparent; font-size: 1rem !important; font-weight: 500; min-height: 56px; display: flex; align-items: center; }
+          .cat-item-mobile.active { border-bottom: 4px solid #da0908 !important; border-left: none !important; background: #fdf5f5; font-weight: 700 !important; color: #da0908; }
           .items-col { padding: 0 !important; }
           .cart-desktop { display: none !important; }
           .cart-mobile-bar { display: flex !important; }
