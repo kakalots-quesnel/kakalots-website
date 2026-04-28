@@ -2038,21 +2038,173 @@ function AboutPage() {
 
 // ── CONTACT PAGE ──
 function ContactPage({ setPage, tweaks }) {
-  const { showContactForm, showReservationWidget } = tweaks;
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', type: 'general' });
-  const [sent, setSent] = useState(false);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSent(true);
-  };
+  const db = useSupabase();
+  const { showContactForm } = tweaks;
+  const [resvForm, setResvForm] = useState({ name: '', phone: '', email: '', party_size: '2', date: '', time: '', requests: '' });
+  const [resvSent, setResvSent] = useState(false);
+  const [resvSubmitting, setResvSubmitting] = useState(false);
+
   const hours = [
-  { day: 'Mon', hours: '12:00pm – 8:30pm' },
-  { day: 'Tue', hours: 'Closed', closed: true },
-  { day: 'Wed', hours: '12:00pm – 8:30pm' },
-  { day: 'Thu', hours: '12:00pm – 8:30pm' },
-  { day: 'Fri', hours: '12:00pm – 8:30pm' },
-  { day: 'Sat', hours: '3:00pm – 8:30pm' },
-  { day: 'Sun', hours: '3:00pm – 8:30pm' }];
+    { day: 'Mon', hours: '12:00pm – 8:30pm' },
+    { day: 'Tue', hours: 'Closed', closed: true },
+    { day: 'Wed', hours: '12:00pm – 8:30pm' },
+    { day: 'Thu', hours: '12:00pm – 8:30pm' },
+    { day: 'Fri', hours: '12:00pm – 8:30pm' },
+    { day: 'Sat', hours: '3:00pm – 8:30pm' },
+    { day: 'Sun', hours: '3:00pm – 8:30pm' }
+  ];
+
+  async function submitReservation() {
+    if (!resvForm.name || !resvForm.phone || !resvForm.date || !resvForm.time) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    setResvSubmitting(true);
+    const { error } = await db.from('reservations').insert({
+      customer_name: resvForm.name,
+      customer_phone: resvForm.phone,
+      customer_email: resvForm.email || null,
+      party_size: parseInt(resvForm.party_size),
+      reservation_date: resvForm.date,
+      reservation_time: resvForm.time,
+      special_requests: resvForm.requests || null,
+      status: 'pending'
+    });
+    setResvSubmitting(false);
+    if (error) { alert('Error submitting reservation. Please call us at 778-414-6789.'); return; }
+    setResvSent(true);
+  }
+
+  return (
+    <>
+      <div className="page-banner">
+        <h1>Contact & Find Us</h1>
+        <p className="chinese">聯絡我們</p>
+      </div>
+      <GreekBorder />
+      <section className="section">
+        <div className="section-inner">
+          <div className="contact-grid">
+            <div className="contact-info">
+              <h3>Location</h3>
+              <p>496 Anderson Dr<br />Quesnel, BC V2J 1G2</p>
+              <a href="https://maps.google.com/?q=496+Anderson+Dr,+Quesnel,+BC+V2J+1G2" target="_blank" rel="noopener noreferrer" style={{ color: '#da0908', fontWeight: '700', fontSize: '0.85rem' }}>Get Directions →</a>
+
+              <h3>Phone</h3>
+              <p><a href="tel:7784146789">778-414-6789</a></p>
+
+              <h3>Hours of Operation</h3>
+              <table className="hours-table" aria-label="Business hours">
+                <tbody>
+                  {hours.map((h, i) =>
+                    <tr key={i} className={h.closed ? 'closed' : ''}>
+                      <td>{h.day}</td>
+                      <td>{h.hours}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <h3>Find Us Online</h3>
+              <div className="social-links">
+                <a href="https://www.facebook.com/profile.php?id=100064086065776" target="_blank" rel="noopener noreferrer" className="social-btn fb" aria-label="Kakalots on Facebook">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                  Facebook
+                </a>
+                <a href="https://share.google/vYYRav1L4wop6GK92" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Kakalots on Google Business">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                  Google Business
+                </a>
+              </div>
+            </div>
+
+            <div>
+              {/* Fixed Map */}
+              <div className="map-container" role="application" aria-label="Map showing Kakalots Restaurant location">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2477.5!2d-122.4965!3d52.9775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x538318f6b8e2a6e7%3A0x8a6c3e4a9f2b1d5c!2s496+Anderson+Dr%2C+Quesnel%2C+BC+V2J+1G2!5e0!3m2!1sen!2sca!4v1"
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Kakalots Restaurant location map">
+                </iframe>
+              </div>
+
+              {/* Reservation Form */}
+              <div style={{ marginTop: '24px', background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '28px' }}>
+                <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#da0908', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dine-In Reservation</h3>
+                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px' }}>Request a table and we'll confirm by phone. For same-day reservations please call <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a>.</p>
+                {resvSent ? (
+                  <div style={{ textAlign: 'center', padding: '24px' }}>
+                    <p style={{ fontSize: '2rem', marginBottom: '12px' }}>✦</p>
+                    <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#da0908', marginBottom: '8px' }}>Reservation Request Received!</p>
+                    <p style={{ fontSize: '0.9rem', color: '#555' }}>We'll call you at <strong>{resvForm.phone}</strong> to confirm. For urgent bookings call <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a>.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name *</label>
+                        <input type="text" placeholder="Your name" value={resvForm.name}
+                          onChange={e => setResvForm(f => ({ ...f, name: e.target.value }))}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', outline: 'none' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Party Size *</label>
+                        <select value={resvForm.party_size} onChange={e => setResvForm(f => ({ ...f, party_size: e.target.value }))}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', background: '#fff', outline: 'none' }}>
+                          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n === 1 ? 'person' : 'people'}</option>)}
+                          <option value="11">11+ (large group)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone Number *</label>
+                      <input type="tel" placeholder="250-000-0000" value={resvForm.phone}
+                        onChange={e => setResvForm(f => ({ ...f, phone: e.target.value }))}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', outline: 'none' }} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date *</label>
+                        <input type="date" value={resvForm.date} min={new Date().toISOString().split('T')[0]}
+                          onChange={e => setResvForm(f => ({ ...f, date: e.target.value }))}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', outline: 'none' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Preferred Time *</label>
+                        <select value={resvForm.time} onChange={e => setResvForm(f => ({ ...f, time: e.target.value }))}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', background: '#fff', outline: 'none' }}>
+                          <option value="">Select time</option>
+                          {['12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'].map(t => {
+                            const [h, m] = t.split(':');
+                            const hr = parseInt(h);
+                            const ampm = hr >= 12 ? 'pm' : 'am';
+                            const hr12 = hr > 12 ? hr - 12 : hr;
+                            return <option key={t} value={t}>{hr12}:{m}{ampm}</option>;
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Special Requests (optional)</label>
+                      <textarea placeholder="Allergies, accessibility needs, special occasion..." value={resvForm.requests}
+                        onChange={e => setResvForm(f => ({ ...f, requests: e.target.value }))}
+                        rows="3" style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', resize: 'vertical', outline: 'none' }} />
+                    </div>
+                    <button className="btn-primary" onClick={submitReservation} disabled={resvSubmitting} style={{ opacity: resvSubmitting ? 0.7 : 1 }}>
+                      {resvSubmitting ? 'Submitting...' : 'Request Reservation'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
 
   return (
     <>
@@ -2095,83 +2247,6 @@ function ContactPage({ setPage, tweaks }) {
                   Google Business
                 </a>
               </div>
-
-              <div style={{ marginTop: '28px' }}>
-                <h3 style={{ marginBottom: '12px' }}>Dine-In Reservations</h3>
-                <a href="#gloria-food-reservation" className="btn-gold" style={{ display: 'inline-block', textDecoration: 'none' }}>Reserve a Table</a>
-              </div>
-            </div>
-
-            <div>
-              <div className="map-container" role="application" aria-label="Map showing Kakalots Restaurant location">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2477.5!2d-122.49!3d52.98!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s496+Anderson+Dr%2C+Quesnel%2C+BC!5e0!3m2!1sen!2sca!4v1"
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Kakalots Restaurant location map">
-                </iframe>
-              </div>
-
-              {/* Contact form */}
-              <div style={{ marginTop: '24px', background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '28px' }}>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#da0908', marginBottom: '18px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Send Us a Message</h3>
-                {sent ?
-                <div style={{ textAlign: 'center', padding: '24px', color: '#da0908' }}>
-                    <p style={{ fontSize: '1.5rem' }}>✦</p>
-                    <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', marginBottom: '8px' }}>Thank you!</p>
-                    <p style={{ fontSize: '0.9rem', color: '#555' }}>We'll be in touch shortly. For urgent matters, please call <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a>.</p>
-                  </div> :
-
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {[
-                  { id: 'name', label: 'Your Name', type: 'text', placeholder: 'Full name' },
-                  { id: 'email', label: 'Email Address', type: 'email', placeholder: 'your@email.com' },
-                  { id: 'phone', label: 'Phone (optional)', type: 'tel', placeholder: '250-000-0000' }].
-                  map((field) =>
-                  <div key={field.id}>
-                        <label htmlFor={field.id} style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{field.label}</label>
-                        <input
-                      id={field.id}
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      value={form[field.id]}
-                      onChange={(e) => setForm((f) => ({ ...f, [field.id]: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', outline: 'none' }} />
-                    
-                      </div>
-                  )}
-                    <div>
-                      <label htmlFor="inquiry" style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inquiry Type</label>
-                      <select id="inquiry" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', background: '#fff' }}>
-                        <option value="general">General Inquiry</option>
-                        <option value="catering">Catering Request</option>
-                        <option value="reservation">Reservation</option>
-                        <option value="feedback">Feedback</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="message" style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', color: '#333', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Message</label>
-                      <textarea id="message" rows="4" placeholder="Your message..." value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.9rem', resize: 'vertical' }}></textarea>
-                    </div>
-                    <button type="submit" className="btn-primary">Send Message</button>
-                  </form>
-                }
-              </div>
-
-              {/* Gloria Food Reservation Placeholder */}
-              <div id="gloria-food-reservation" style={{ marginTop: '24px', background: '#fdf5f5', border: '2px dashed #C8960C', padding: '32px', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#1a1a1a', marginBottom: '8px' }}>Dine-In Reservation System</p>
-                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '16px' }}>Gloria Food reservation widget will be embedded here.<br />Replace with your Gloria Food reservation embed code.</p>
-                <code style={{ background: '#fff', border: '1px solid #ddd', padding: '6px 14px', borderRadius: '3px', fontSize: '0.78rem', color: '#555' }}>{`<!-- Gloria Food reservation widget -->`}</code>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>);
-
-}
 
 // ── TERMS PAGE ──
 function TermsPage() {
