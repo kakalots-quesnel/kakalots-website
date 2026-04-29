@@ -1549,6 +1549,8 @@ function OrderPage() {
   }
 
   async function submitOrder() {
+    // Honeypot check — bots fill hidden fields, humans don't
+    if (document.getElementById('order-trap') && document.getElementById('order-trap').value) return;
     if (!form.name || !form.phone) return alert('Please fill in your name and phone number.');
     if (orderType === 'delivery') {
       if (!form.address || !form.postal) return alert('Please fill in your delivery address and postal code.');
@@ -1913,6 +1915,8 @@ function OrderPage() {
       <GreekBorder />
       <div className="checkout-grid" style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 16px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', alignItems: 'start' }}>
         <div>
+          {/* Honeypot — hidden from humans, filled by bots */}
+          <input id="order-trap" type="text" name="website" autoComplete="off" tabIndex="-1" style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0 }} />
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', marginBottom: '24px', color: '#da0908' }}>Your Details</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {[
