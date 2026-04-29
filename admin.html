@@ -308,8 +308,9 @@
   <div class="login-box">
     <div class="login-logo">🥢 KAKLOTS</div>
     <div class="login-sub">Restaurant Admin Portal</div>
-    <input type="password" id="login-password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()">
-    <button class="login-btn" onclick="login()">SIGN IN</button>
+    <input type="email" id="login-email" placeholder="Admin email address" onkeydown="if(event.key==='Enter')login()">
+    <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" id="login-btn" onclick="login()">SIGN IN</button>
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
@@ -743,7 +744,6 @@
 <script>
 const SUPABASE_URL = 'https://wbdyswkzdzqrxwkhnuaf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndiZHlzd2t6ZHpxcnh3a2hudWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDE3NDEsImV4cCI6MjA5Mjg3Nzc0MX0.MP25yb0K8C3BDtNaDGhyt5GKjXk1FcMCYMOyqWeX2qs';
-const ADMIN_PASSWORD = '496Anderson!';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -758,25 +758,46 @@ let allOrders = [];
 let orderSubscription = null;
 
 // ============ AUTH ============
-function login() {
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-password').value;
-  if (pw === ADMIN_PASSWORD) {
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-btn').textContent = 'SIGNING IN...';
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
+
+  if (error) {
+    document.getElementById('login-error').textContent = 'Invalid email or password.';
+    document.getElementById('login-btn').textContent = 'SIGN IN';
+    return;
+  }
+
+  isLoggedIn = true;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initApp();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  isLoggedIn = false;
+  if (orderSubscription) orderSubscription.unsubscribe();
+  stopPendingAlert();
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+// Check if already logged in on page load
+db.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
     isLoggedIn = true;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     initApp();
-  } else {
-    document.getElementById('login-error').textContent = 'Incorrect password';
   }
-}
-
-function logout() {
-  isLoggedIn = false;
-  if (orderSubscription) orderSubscription.unsubscribe();
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-password').value = '';
-}
+});
 
 // ============ INIT ============
 async function initApp() {
