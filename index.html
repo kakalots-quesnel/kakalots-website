@@ -1356,7 +1356,7 @@ function HomePage({ setPage }) {
                 <ImgPlaceholder label="restaurant interior" style={{ height: '100%' }} />
               </div>
               <div className="about-img" role="img" aria-label="Food photo placeholder">
-                <ImgPlaceholder label="signature dish" style={{ height: '100%' }} />
+                <img src="https://i.ibb.co/Y4c07PNL/Image-20260428203848-55-1.jpg" alt="Kakalots signature dish" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
               <div className="about-img" role="img" aria-label="Team photo placeholder">
                 <ImgPlaceholder label="Lili & Jimmy" style={{ height: '100%' }} />
@@ -2083,15 +2083,15 @@ function AboutPage() {
             </div>
             <div>
               <div style={{ display: 'grid', gap: '14px' }}>
-                {[
-                { label: 'restaurant exterior', height: '220px' },
-                { label: 'Lili & Jimmy — owners', height: '220px' },
-                { label: 'signature dish', height: '200px' }].
-                map((img, i) =>
-                <div key={i} role="img" aria-label={img.label} style={{ width: '100%', height: img.height, background: 'repeating-linear-gradient(45deg,#f9f0f0,#f9f0f0 8px,#f0dfdf 8px,#f0dfdf 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #f0d0d0' }}>
-                    <ImgPlaceholder label={img.label} style={{ height: '100%', width: '100%' }} />
-                  </div>
-                )}
+                <div style={{ width: '100%', height: '220px', border: '2px solid #f0d0d0', overflow: 'hidden' }}>
+                  <img src="https://i.ibb.co/zhR3QpjZ/clem-onojeghuo-r8l-DTt-SWGUc-unsplash.jpg" alt="Kakalots Restaurant exterior" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ width: '100%', height: '220px', border: '2px solid #f0d0d0', overflow: 'hidden' }}>
+                  <img src="https://i.ibb.co/0yKbtwxq/19ec62ba51fde35ba0aff5b84321c5af.jpg" alt="Lili & Jimmy — owners of Kakalots" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ width: '100%', height: '200px', border: '2px solid #f0d0d0', overflow: 'hidden' }}>
+                  <img src="https://i.ibb.co/Y4c07PNL/Image-20260428203848-55-1.jpg" alt="Kakalots signature dish" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
               </div>
             </div>
           </div>
