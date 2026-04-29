@@ -1452,14 +1452,15 @@ function OrderPage() {
     setSettings(s);
     setIsOpen(s['is_open'] !== 'false');
 
-    // Check if current time is within operating hours
+    // Always check time in Pacific Time (Quesnel BC) regardless of customer's timezone
     const now = new Date();
-    const day = now.getDay();
+    const pacificTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Vancouver' }));
+    const day = pacificTime.getDay();
     const todayHours = (hrs || []).find(h => h.day_of_week === day);
     if (todayHours && !todayHours.is_closed) {
       const [openH, openM] = todayHours.open_time.split(':').map(Number);
       const [closeH, closeM] = todayHours.close_time.split(':').map(Number);
-      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const nowMins = pacificTime.getHours() * 60 + pacificTime.getMinutes();
       const openMins = openH * 60 + openM;
       const closeMins = closeH * 60 + closeM;
       setWithinHours(nowMins >= openMins && nowMins < closeMins);
