@@ -325,20 +325,91 @@ async function connectPrinter() {
     document.getElementById('connect-btn').disabled = true;
 
     printerDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { namePrefix: 'XP' },
-        { namePrefix: 'Xprinter' },
-        { namePrefix: 'printer' },
-        { namePrefix: 'BT' }
-      ],
-      optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      acceptAllDevices: true,
+      optionalServices: [
+        '000018f0-0000-1000-8000-00805f9b34fb',
+        '00001101-0000-1000-8000-00805f9b34fb',
+        '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+        '00001800-0000-1000-8000-00805f9b34fb',
+        '00001801-0000-1000-8000-00805f9b34fb'
+      ]
     });
 
     printerDevice.addEventListener('gattserverdisconnected', onPrinterDisconnected);
 
     const server = await printerDevice.gatt.connect();
-    const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-    printerChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+    log('GATT connected, finding print service...', 'info');
+
+    // Try multiple known thermal printer service UUIDs
+    const serviceUUIDs = [
+      '000018f0-0000-1000-8000-00805f9b34fb',
+      '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+      'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+      '00001101-0000-1000-8000-00805f9b34fb'
+    ];
+    const charUUIDs = [
+      '00002af1-0000-1000-8000-00805f9b34fb',
+      '49535343-8841-43f4-a8d4-ecbe34729bb3',
+      '49535343-1e4d-4bd9-ba61-23c647249616',
+      'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f'
+    ];
+
+    let service = null;
+    let foundServiceUUID = null;
+    for (const uuid of serviceUUIDs) {
+      try {
+        service = await server.getPrimaryService(uuid);
+        foundServiceUUID = uuid;
+        log(`Found service: ${uuid.slice(0,8)}...`, 'success');
+        break;
+      } catch(e) {}
+    }
+
+    if (!service) {
+      // Try getting all services
+      try {
+        const services = await server.getPrimaryServices();
+        if (services.length > 0) {
+          service = services[0];
+          foundServiceUUID = service.uuid;
+          log(`Using service: ${service.uuid.slice(0,8)}...`, 'info');
+        }
+      } catch(e) {}
+    }
+
+    if (!service) {
+      log('No print service found. Printer may not support Web Bluetooth printing.', 'error');
+      document.getElementById('connect-btn').disabled = false;
+      return;
+    }
+
+    // Try to get write characteristic
+    let char = null;
+    for (const uuid of charUUIDs) {
+      try {
+        char = await service.getCharacteristic(uuid);
+        log(`Found characteristic: ${uuid.slice(0,8)}...`, 'success');
+        break;
+      } catch(e) {}
+    }
+
+    if (!char) {
+      try {
+        const chars = await service.getCharacteristics();
+        // Find a writable characteristic
+        char = chars.find(c => c.properties.write || c.properties.writeWithoutResponse);
+        if (char) log(`Using characteristic: ${char.uuid.slice(0,8)}...`, 'info');
+      } catch(e) {}
+    }
+
+    if (!char) {
+      log('No writable characteristic found. Try a different printer app.', 'error');
+      document.getElementById('connect-btn').disabled = false;
+      return;
+    }
+
+    printerChar = char;
 
     setPrinterStatus(true);
     document.getElementById('connect-btn').textContent = '✓ Printer Connected';
