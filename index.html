@@ -270,7 +270,7 @@
       width: auto; object-fit: contain; display: block;
     }
     .hero-center-image {
-      flex: 1 1 auto; max-width: 380px; min-width: 0;
+      width: min(420px, 90vw);
       aspect-ratio: 1 / 1;
       border: 3px solid var(--red);
       background: var(--cream); display: flex;
@@ -924,12 +924,10 @@ function HomePage({ setPage }) {
           </div>
         </div>
 
-        <div className="hero-panels-row" style={{ gap: "80px" }}>
-          <img src="https://i.ibb.co/JW7jjfQS/3.png" alt="家家歡樂 — Family happiness banner" className="hero-side-banner" />
-          <div className="hero-center-image" role="img" aria-label="Lion dance celebration">
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}>
+          <div className="hero-center-image" role="img" aria-label="Kakalots Restaurant">
             <img src="https://i.ibb.co/fGXgLX26/2.png" alt="Kakalots Restaurant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <img src="https://i.ibb.co/VYsfWBPt/4.png" alt="大千風味 — Great flavours banner" className="hero-side-banner" style={{ borderColor: "rgb(218, 9, 8)", borderStyle: "solid", objectFit: "fill", borderWidth: "0px" }} />
         </div>
 
         <div className="hero-specials" role="list" aria-label="Weekly specials">
