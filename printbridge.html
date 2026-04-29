@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kakalots Print Bridge</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --red: #da0908;
+    --gold: #C8960C;
+    --dark: #111;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --text2: #888;
+    --green: #4caf7d;
+    --yellow: #e8c848;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  /* LOGIN */
+  #login-screen {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; width: 100%;
+  }
+  .login-logo {
+    font-size: 2rem; color: var(--red); margin-bottom: 4px; text-align: center;
+  }
+  .login-sub { color: var(--text2); font-size: 0.75rem; margin-bottom: 32px; text-align: center; letter-spacing: 0.1em; text-transform: uppercase; }
+  .login-input {
+    width: 100%; max-width: 320px; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text);
+    padding: 14px 16px; font-family: 'Courier New', monospace;
+    font-size: 1rem; border-radius: 4px; margin-bottom: 10px; outline: none;
+    display: block;
+  }
+  .login-input:focus { border-color: var(--red); }
+  .login-btn {
+    width: 100%; max-width: 320px; background: var(--red); color: #fff;
+    border: none; padding: 16px; font-family: 'Courier New', monospace;
+    font-size: 1rem; font-weight: 700; cursor: pointer; border-radius: 4px;
+    letter-spacing: 0.08em; display: block;
+  }
+  .login-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; text-align: center; }
+
+  /* MAIN APP */
+  #app { display: none; width: 100%; max-width: 480px; }
+
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+  }
+  .header-logo { font-size: 1.1rem; color: var(--red); font-weight: 700; }
+  .header-sub { font-size: 0.65rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; }
+  .logout-btn {
+    background: none; border: 1px solid var(--border); color: var(--text2);
+    padding: 6px 12px; font-family: 'Courier New', monospace; font-size: 0.7rem;
+    cursor: pointer; border-radius: 3px;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* STATUS CARD */
+  .status-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+  }
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .status-label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; }
+  .status-val { font-size: 0.85rem; font-weight: 700; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; margin-right: 6px;
+  }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  .dot-red { background: var(--red); }
+  .dot-yellow { background: var(--yellow); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* CONNECT BTN */
+  .connect-btn {
+    width: 100%; background: var(--gold); color: #000;
+    border: none; padding: 18px; font-family: 'Courier New', monospace;
+    font-size: 1rem; font-weight: 700; cursor: pointer; border-radius: 6px;
+    letter-spacing: 0.05em; margin-bottom: 12px;
+  }
+  .connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .connect-btn.connected { background: var(--green); color: #fff; }
+
+  /* TEST BTN */
+  .test-btn {
+    width: 100%; background: none; border: 1px solid var(--border);
+    color: var(--text2); padding: 14px; font-family: 'Courier New', monospace;
+    font-size: 0.85rem; cursor: pointer; border-radius: 6px; margin-bottom: 20px;
+  }
+  .test-btn:hover { border-color: var(--text2); color: var(--text); }
+  .test-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* LOG */
+  .log-title { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .log-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; max-height: 280px; overflow-y: auto;
+    font-size: 0.75rem; line-height: 1.8;
+  }
+  .log-entry { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding: 4px 0; }
+  .log-time { color: var(--text2); flex-shrink: 0; }
+  .log-msg { color: var(--text); }
+  .log-msg.success { color: var(--green); }
+  .log-msg.error { color: var(--red); }
+  .log-msg.info { color: var(--gold); }
+
+  /* PRINT PULSE */
+  .print-flash {
+    position: fixed; inset: 0; background: rgba(218,9,8,0.15);
+    pointer-events: none; opacity: 0; transition: opacity 0.1s;
+  }
+  .print-flash.active { opacity: 1; }
+
+  /* KEEP AWAKE NOTE */
+  .note {
+    font-size: 0.7rem; color: var(--text2); text-align: center;
+    line-height: 1.6; margin-top: 16px; padding: 12px;
+    border: 1px solid var(--border); border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="print-flash" id="print-flash"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">🥢 KAKALOTS</div>
+  <div class="login-sub">Print Bridge · Tablet Station</div>
+  <input class="login-input" type="email" id="login-email" placeholder="Admin email" onkeydown="if(event.key==='Enter')login()">
+  <input class="login-input" type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+  <button class="login-btn" id="login-btn" onclick="login()">SIGN IN</button>
+  <div class="login-error" id="login-error"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="header-logo">🥢 KAKALOTS</div>
+      <div class="header-sub">Print Bridge</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+
+  <div class="status-card">
+    <div class="status-row">
+      <span class="status-label">Supabase</span>
+      <span class="status-val" id="supabase-status"><span class="status-dot dot-yellow"></span>Connecting...</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Printer</span>
+      <span class="status-val" id="printer-status"><span class="status-dot dot-red"></span>Not Connected</span>
+    </div>
+    <div class="status-row" style="margin-bottom:0">
+      <span class="status-label">Printed Today</span>
+      <span class="status-val" id="print-count" style="color:var(--gold)">0 tickets</span>
+    </div>
+  </div>
+
+  <button class="connect-btn" id="connect-btn" onclick="connectPrinter()">
+    🖨️ Connect Xprinter via Bluetooth
+  </button>
+
+  <button class="test-btn" id="test-btn" onclick="printTest()" disabled>
+    Print Test Ticket
+  </button>
+
+  <div class="log-title">Activity Log</div>
+  <div class="log-container" id="log-container">
+    <div class="log-entry">
+      <span class="log-time">--:--</span>
+      <span class="log-msg info">Print bridge ready. Connect printer to begin.</span>
+    </div>
+  </div>
+
+  <div class="note">
+    ⚠️ Keep this page open and screen awake at all times.<br>
+    Go to Settings → Display → Screen timeout → set to "Never" or longest available.
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wbdyswkzdzqrxwkhnuaf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndiZHlzd2t6ZHpxcnh3a2hudWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDE3NDEsImV4cCI6MjA5Mjg3Nzc0MX0.MP25yb0K8C3BDtNaDGhyt5GKjXk1FcMCYMOyqWeX2qs';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let printerDevice = null;
+let printerChar = null;
+let printCount = 0;
+let audioCtx = null;
+let orderSub = null;
+
+// ── AUTH ──
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-btn').textContent = 'SIGNING IN...';
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
+  if (error) {
+    document.getElementById('login-error').textContent = 'Invalid email or password.';
+    document.getElementById('login-btn').textContent = 'SIGN IN';
+    return;
+  }
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initBridge();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  if (orderSub) orderSub.unsubscribe();
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// Check existing session
+db.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initBridge();
+  }
+});
+
+// ── INIT ──
+function initBridge() {
+  initAudio();
+  subscribeToOrders();
+}
+
+// ── AUDIO ──
+function initAudio() {
+  document.addEventListener('click', () => {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }, { once: false });
+}
+
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    [0, 0.25, 0.5].forEach(t => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
+      gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.2);
+      osc.start(audioCtx.currentTime + t);
+      osc.stop(audioCtx.currentTime + t + 0.25);
+    });
+  } catch(e) {}
+}
+
+// ── SUPABASE SUBSCRIPTION ──
+function subscribeToOrders() {
+  setSupabaseStatus(true);
+  orderSub = db.channel('print-orders')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'orders',
+      filter: 'status=eq.accepted'
+    }, (payload) => {
+      log(`New accepted order #${payload.new.order_number}`, 'info');
+      playBeep();
+      flashScreen();
+      printOrder(payload.new);
+    }).subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        setSupabaseStatus(true);
+        log('Connected to Kakalots live orders', 'success');
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        setSupabaseStatus(false);
+        log('Lost connection — reconnecting...', 'error');
+        setTimeout(subscribeToOrders, 5000);
+      }
+    });
+}
+
+function setSupabaseStatus(connected) {
+  document.getElementById('supabase-status').innerHTML = connected
+    ? '<span class="status-dot dot-green"></span>Live'
+    : '<span class="status-dot dot-red"></span>Disconnected';
+}
+
+// ── BLUETOOTH PRINTER ──
+async function connectPrinter() {
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth not supported. Use Chrome on Android.', 'error');
+    return;
+  }
+  try {
+    log('Searching for Xprinter...', 'info');
+    document.getElementById('connect-btn').disabled = true;
+
+    printerDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: 'XP' },
+        { namePrefix: 'Xprinter' },
+        { namePrefix: 'printer' },
+        { namePrefix: 'BT' }
+      ],
+      optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+    });
+
+    printerDevice.addEventListener('gattserverdisconnected', onPrinterDisconnected);
+
+    const server = await printerDevice.gatt.connect();
+    const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+    printerChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+    setPrinterStatus(true);
+    document.getElementById('connect-btn').textContent = '✓ Printer Connected';
+    document.getElementById('connect-btn').classList.add('connected');
+    document.getElementById('connect-btn').disabled = true;
+    document.getElementById('test-btn').disabled = false;
+    log(`Connected to: ${printerDevice.name}`, 'success');
+
+  } catch(e) {
+    document.getElementById('connect-btn').disabled = false;
+    if (e.name !== 'NotFoundError') {
+      log(`Connection failed: ${e.message}`, 'error');
+    } else {
+      log('Printer selection cancelled.', 'info');
+    }
+  }
+}
+
+function onPrinterDisconnected() {
+  printerChar = null;
+  setPrinterStatus(false);
+  document.getElementById('connect-btn').textContent = '🖨️ Reconnect Printer';
+  document.getElementById('connect-btn').classList.remove('connected');
+  document.getElementById('connect-btn').disabled = false;
+  document.getElementById('test-btn').disabled = true;
+  log('Printer disconnected. Tap to reconnect.', 'error');
+}
+
+function setPrinterStatus(connected) {
+  document.getElementById('printer-status').innerHTML = connected
+    ? `<span class="status-dot dot-green"></span>${printerDevice?.name || 'Xprinter'}`
+    : '<span class="status-dot dot-red"></span>Not Connected';
+}
+
+// ── PRINT ──
+async function printOrder(order) {
+  if (!printerChar) {
+    log('Cannot print — printer not connected.', 'error');
+    return;
+  }
+
+  try {
+    const lines = buildReceipt(order);
+    await sendToPrinter(lines);
+    printCount++;
+    document.getElementById('print-count').textContent = `${printCount} ticket${printCount !== 1 ? 's' : ''}`;
+    log(`Printed order #${order.order_number} ✓`, 'success');
+    flashScreen();
+  } catch(e) {
+    log(`Print failed: ${e.message}`, 'error');
+  }
+}
+
+function buildReceipt(order) {
+  const ESC = '\x1B';
+  const GS = '\x1D';
+  const LF = '\n';
+
+  // ESC/POS commands
+  const INIT = ESC + '@';
+  const ALIGN_CENTER = ESC + 'a\x01';
+  const ALIGN_LEFT = ESC + 'a\x00';
+  const BOLD_ON = ESC + 'E\x01';
+  const BOLD_OFF = ESC + 'E\x00';
+  const DOUBLE_HEIGHT = GS + '!\x01';
+  const NORMAL_SIZE = GS + '!\x00';
+  const CUT = GS + 'V\x41\x03';
+  const DIVIDER = '--------------------------------' + LF;
+
+  const time = new Date(order.created_at).toLocaleTimeString('en-CA', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver'
+  });
+  const date = new Date(order.created_at).toLocaleDateString('en-CA', {
+    timeZone: 'America/Vancouver'
+  });
+
+  let receipt = INIT;
+  receipt += ALIGN_CENTER;
+  receipt += BOLD_ON + DOUBLE_HEIGHT + 'KAKALOTS' + LF + NORMAL_SIZE + BOLD_OFF;
+  receipt += '496 Anderson Dr, Quesnel BC' + LF;
+  receipt += '778-414-6789' + LF;
+  receipt += DIVIDER;
+
+  receipt += BOLD_ON;
+  receipt += `ORDER #${order.order_number}` + LF;
+  receipt += BOLD_OFF;
+  receipt += `${date}  ${time}` + LF;
+  receipt += BOLD_ON + (order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **') + BOLD_OFF + LF;
+  receipt += DIVIDER;
+
+  receipt += ALIGN_LEFT;
+  receipt += BOLD_ON + 'CUSTOMER:' + BOLD_OFF + LF;
+  receipt += order.customer_name + LF;
+  receipt += order.customer_phone + LF;
+  if (order.order_type === 'delivery' && order.delivery_address) {
+    receipt += order.delivery_address + LF;
+    if (order.delivery_postal_code) receipt += order.delivery_postal_code + LF;
+  }
+  receipt += DIVIDER;
+
+  receipt += BOLD_ON + 'ITEMS:' + BOLD_OFF + LF;
+  const items = order.items || [];
+  items.forEach(item => {
+    const name = `${item.qty}x ${item.name}`;
+    const price = `$${(item.price * item.qty).toFixed(2)}`;
+    const spaces = 32 - name.length - price.length;
+    receipt += name + ' '.repeat(Math.max(1, spaces)) + price + LF;
+    if (item.options) receipt += '  ' + item.options + LF;
+  });
+  receipt += DIVIDER;
+
+  receipt += `Subtotal:` + ' '.repeat(32 - 9 - `$${order.subtotal.toFixed(2)}`.length) + `$${order.subtotal.toFixed(2)}` + LF;
+  if (order.delivery_fee > 0) {
+    receipt += `Delivery:` + ' '.repeat(32 - 9 - `$${parseFloat(order.delivery_fee).toFixed(2)}`.length) + `$${parseFloat(order.delivery_fee).toFixed(2)}` + LF;
+  }
+  if (order.discount > 0) {
+    const discLine = `Promo${order.promo_code ? ' ('+order.promo_code+')' : ''}:`;
+    const discAmt = `-$${parseFloat(order.discount).toFixed(2)}`;
+    receipt += discLine + ' '.repeat(Math.max(1, 32 - discLine.length - discAmt.length)) + discAmt + LF;
+  }
+  if (order.tax > 0) {
+    receipt += `Tax:` + ' '.repeat(32 - 4 - `$${parseFloat(order.tax).toFixed(2)}`.length) + `$${parseFloat(order.tax).toFixed(2)}` + LF;
+  }
+  receipt += BOLD_ON;
+  receipt += `TOTAL:` + ' '.repeat(32 - 6 - `$${parseFloat(order.total).toFixed(2)}`.length) + `$${parseFloat(order.total).toFixed(2)}` + LF;
+  receipt += BOLD_OFF;
+  receipt += DIVIDER;
+
+  if (order.payment_method) {
+    const pm = order.order_type === 'pickup' ? 'Pay at Counter' : order.payment_method === 'cash' ? 'Cash to Driver' : 'Card to Driver';
+    receipt += ALIGN_CENTER + 'PAYMENT: ' + pm.toUpperCase() + LF;
+  }
+
+  if (order.special_instructions) {
+    receipt += DIVIDER;
+    receipt += BOLD_ON + 'SPECIAL INSTRUCTIONS:' + BOLD_OFF + LF;
+    receipt += order.special_instructions + LF;
+  }
+
+  if (order.estimated_time) {
+    receipt += DIVIDER;
+    receipt += ALIGN_CENTER + BOLD_ON + `EST. TIME: ${order.estimated_time} MIN` + BOLD_OFF + LF;
+  }
+
+  receipt += LF + LF + LF;
+  receipt += CUT;
+
+  return receipt;
+}
+
+async function sendToPrinter(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const chunkSize = 512;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+    await printerChar.writeValue(chunk);
+    await new Promise(r => setTimeout(r, 50));
+  }
+}
+
+async function printTest() {
+  const testOrder = {
+    order_number: 'TEST',
+    created_at: new Date().toISOString(),
+    order_type: 'pickup',
+    customer_name: 'Test Customer',
+    customer_phone: '778-555-0000',
+    items: [
+      { qty: 1, name: 'Spring Rolls', price: 8.95, options: '' },
+      { qty: 2, name: 'Fried Rice', price: 12.50, options: 'Extra sauce' }
+    ],
+    subtotal: 33.95,
+    delivery_fee: 0,
+    discount: 0,
+    tax: 4.07,
+    total: 38.02,
+    payment_method: 'in_store',
+    special_instructions: '',
+    estimated_time: 20
+  };
+  log('Printing test ticket...', 'info');
+  await printOrder(testOrder);
+}
+
+// ── UTILS ──
+function flashScreen() {
+  const f = document.getElementById('print-flash');
+  f.classList.add('active');
+  setTimeout(() => f.classList.remove('active'), 300);
+}
+
+function log(msg, type = 'info') {
+  const container = document.getElementById('log-container');
+  const now = new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
+  container.insertBefore(entry, container.firstChild);
+  // Keep max 50 entries
+  while (container.children.length > 50) container.removeChild(container.lastChild);
+}
+</script>
+</body>
+</html>
