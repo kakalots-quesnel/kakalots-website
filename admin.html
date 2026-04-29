@@ -1319,20 +1319,24 @@ async function deleteZone(id) {
 
 // ============ HOURS ============
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let hoursData = [];
 
 async function loadHours() {
   const { data } = await db.from('hours').select('*').order('day_of_week');
+  hoursData = data || [];
+  renderHours();
+}
+
+function renderHours() {
   const list = document.getElementById('hours-list');
   list.innerHTML = DAYS.map((day, i) => {
-    const h = (data || []).find(d => d.day_of_week === i) || {};
+    const h = hoursData.find(d => d.day_of_week === i) || { is_closed: false, open_time: '11:00', close_time: '21:00' };
     return `
       <div class="hours-row">
         <div class="day-name">${day}</div>
-        ${h.is_closed ? `<div class="closed-overlay">Closed</div>` : `
-          <input class="form-input" type="time" id="open-${i}" value="${h.open_time || '11:00'}">
-          <input class="form-input" type="time" id="close-${i}" value="${h.close_time || '21:00'}">
-        `}
-        <label class="toggle" title="Closed">
+        <input class="form-input" type="time" id="open-${i}" value="${h.open_time || '11:00'}" ${h.is_closed ? 'disabled style="opacity:0.3"' : ''}>
+        <input class="form-input" type="time" id="close-${i}" value="${h.close_time || '21:00'}" ${h.is_closed ? 'disabled style="opacity:0.3"' : ''}>
+        <label class="toggle" title="Mark as closed">
           <input type="checkbox" id="closed-${i}" ${h.is_closed ? 'checked' : ''} onchange="toggleDayClosed(${i}, this.checked)">
           <span class="toggle-slider"></span>
         </label>
@@ -1342,7 +1346,14 @@ async function loadHours() {
 }
 
 function toggleDayClosed(day, closed) {
-  loadHours();
+  // Update in memory
+  const idx = hoursData.findIndex(h => h.day_of_week === day);
+  if (idx !== -1) hoursData[idx].is_closed = closed;
+  // Update UI without full re-render — just toggle the inputs
+  const openInput = document.getElementById(`open-${day}`);
+  const closeInput = document.getElementById(`close-${day}`);
+  if (openInput) { openInput.disabled = closed; openInput.style.opacity = closed ? '0.3' : '1'; }
+  if (closeInput) { closeInput.disabled = closed; closeInput.style.opacity = closed ? '0.3' : '1'; }
 }
 
 async function saveHours() {
@@ -1357,6 +1368,9 @@ async function saveHours() {
     } else {
       await db.from('hours').insert({ day_of_week: i, is_closed, open_time, close_time });
     }
+    // Update local cache
+    const idx = hoursData.findIndex(h => h.day_of_week === i);
+    if (idx !== -1) { hoursData[idx].is_closed = is_closed; hoursData[idx].open_time = open_time; hoursData[idx].close_time = close_time; }
   }
   toast('Hours saved', 'success');
 }
