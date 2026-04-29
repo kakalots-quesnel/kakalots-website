@@ -944,7 +944,8 @@
       .hero-side-banner { height: clamp(100px, 22vw, 180px); }
       .hero-center-image { max-width: none; }
       .about-grid, .hours-order-grid, .contact-grid { grid-template-columns: 1fr; }
-      .about-image-stack { display: none; }
+      .about-image-stack { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+      .about-image-stack > div { height: 200px !important; }
       .footer-grid { grid-template-columns: 1fr 1fr; }
       .menu-list { grid-template-columns: 1fr; }
       .lantern-svg { width: 44px; }
@@ -1351,15 +1352,12 @@ function HomePage({ setPage }) {
                 <a href="#" className="btn-secondary" onClick={(e) => {e.preventDefault();setPage('about');window.scrollTo(0, 0);}}>Read Our Story</a>
               </div>
             </div>
-            <div className="about-image-stack">
-              <div className="about-img tall" role="img" aria-label="Restaurant interior photo placeholder">
-                <ImgPlaceholder label="restaurant interior" style={{ height: '100%' }} />
+            <div className="about-image-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ borderRadius: '2px', overflow: 'hidden', height: '340px' }}>
+                <img src="https://i.ibb.co/Y4c07PNL/Image-20260428203848-55-1.jpg" alt="Kakalots signature dish" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div className="about-img" role="img" aria-label="Food photo placeholder">
-                <img src="https://i.ibb.co/Y4c07PNL/Image-20260428203848-55-1.jpg" alt="Kakalots signature dish" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </div>
-              <div className="about-img" role="img" aria-label="Team photo placeholder">
-                <ImgPlaceholder label="Lili & Jimmy" style={{ height: '100%' }} />
+              <div style={{ borderRadius: '2px', overflow: 'hidden', height: '340px' }}>
+                <img src="https://i.ibb.co/TMvKcq4P/Screenshot-2026-04-29-at-2-25-59-PM.png" alt="Kakalots Restaurant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             </div>
           </div>
