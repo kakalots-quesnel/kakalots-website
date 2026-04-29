@@ -1336,30 +1336,37 @@ function renderHours() {
         <div class="day-name">${day}</div>
         <input class="form-input" type="time" id="open-${i}" value="${h.open_time || '11:00'}" ${h.is_closed ? 'disabled style="opacity:0.3"' : ''}>
         <input class="form-input" type="time" id="close-${i}" value="${h.close_time || '21:00'}" ${h.is_closed ? 'disabled style="opacity:0.3"' : ''}>
-        <label class="toggle" title="Mark as closed">
-          <input type="checkbox" id="closed-${i}" ${h.is_closed ? 'checked' : ''} onchange="toggleDayClosed(${i}, this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label class="toggle" title="Toggle open/closed">
+            <input type="checkbox" id="closed-${i}" ${!h.is_closed ? 'checked' : ''} onchange="toggleDayClosed(${i}, !this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:11px;color:var(--text2);font-family:var(--mono)">${h.is_closed ? 'CLOSED' : 'OPEN'}</span>
+        </div>
       </div>
     `;
   }).join('');
 }
 
 function toggleDayClosed(day, closed) {
-  // Update in memory
   const idx = hoursData.findIndex(h => h.day_of_week === day);
   if (idx !== -1) hoursData[idx].is_closed = closed;
-  // Update UI without full re-render — just toggle the inputs
   const openInput = document.getElementById(`open-${day}`);
   const closeInput = document.getElementById(`close-${day}`);
   if (openInput) { openInput.disabled = closed; openInput.style.opacity = closed ? '0.3' : '1'; }
   if (closeInput) { closeInput.disabled = closed; closeInput.style.opacity = closed ? '0.3' : '1'; }
+  // Update label
+  const row = document.getElementById(`closed-${day}`)?.closest('.hours-row');
+  if (row) {
+    const label = row.querySelector('span[style*="font-size:11px"]');
+    if (label) label.textContent = closed ? 'CLOSED' : 'OPEN';
+  }
 }
 
 async function saveHours() {
   const { data: existing } = await db.from('hours').select('*');
   for (let i = 0; i < 7; i++) {
-    const is_closed = document.getElementById(`closed-${i}`)?.checked || false;
+    const is_closed = !(document.getElementById(`closed-${i}`)?.checked || false);
     const open_time = document.getElementById(`open-${i}`)?.value || '11:00';
     const close_time = document.getElementById(`close-${i}`)?.value || '21:00';
     const ex = (existing || []).find(h => h.day_of_week === i);
