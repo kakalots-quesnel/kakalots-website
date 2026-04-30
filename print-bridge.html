@@ -465,110 +465,117 @@ async function printOrder(order) {
 
 function buildReceipt(order) {
   const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
-
-  const ESC = 0x1B, GS = 0x1D, LF = 0x0A;
   const bytes = [];
 
+  // Simple push - just convert text to bytes
   function push(...args) {
     for (const a of args) {
       if (typeof a === 'number') bytes.push(a);
-      else if (typeof a === 'string') { for (let i = 0; i < a.length; i++) bytes.push(a.charCodeAt(i) & 0xFF); }
-      else if (Array.isArray(a)) bytes.push(...a);
+      else if (typeof a === 'string') {
+        for (let i = 0; i < a.length; i++) bytes.push(a.charCodeAt(i) & 0xFF);
+      } else if (Array.isArray(a)) bytes.push(...a);
     }
   }
 
-  function line(text = '') { push(text, LF); }
-  function divider() { line('--------------------------------'); }
-  function padLine(left, right, width = 32) {
-    const spaces = width - left.length - right.length;
-    return left + ' '.repeat(Math.max(1, spaces)) + right;
-  }
+  const LF = 0x0A;
+  const ESC = 0x1B;
+  const GS  = 0x1D;
 
-  const INIT         = [ESC, 0x40];
-  const ALIGN_CENTER = [ESC, 0x61, 0x01];
-  const ALIGN_LEFT   = [ESC, 0x61, 0x00];
-  const BOLD_ON      = [ESC, 0x45, 0x01];
-  const BOLD_OFF     = [ESC, 0x45, 0x00];
-  const DBL_ON       = [GS,  0x21, 0x11];
-  const DBL_OFF      = [GS,  0x21, 0x00];
-  const CUT          = [GS,  0x56, 0x41, 0x10];
+  function line(text) { push(String(text || ''), LF); }
+  function blank()    { push(LF); }
+  function divider()  { line('--------------------------------'); }
+  function center(text) { push([ESC, 0x61, 0x01], String(text), LF, [ESC, 0x61, 0x00]); }
+  function bold(text) { push([ESC, 0x45, 0x01], String(text), LF, [ESC, 0x45, 0x00]); }
+
+  function padLine(left, right) {
+    left = String(left); right = String(right);
+    const total = 32;
+    const spaces = Math.max(1, total - left.length - right.length);
+    return left + ' '.repeat(spaces) + right;
+  }
 
   const time = new Date(order.created_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' });
   const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
 
-  push(INIT, ALIGN_CENTER);
-  push(BOLD_ON, DBL_ON); line('KAKALOTS'); push(DBL_OFF, BOLD_OFF);
-  line('496 Anderson Dr, Quesnel BC');
-  line('778-414-6789');
+  // Init printer
+  push([ESC, 0x40]);
+
+  // Header
+  center('KAKALOTS');
+  center('496 Anderson Dr, Quesnel BC');
+  center('778-414-6789');
   divider();
 
-  push(BOLD_ON); line(`ORDER #${order.order_number}`); push(BOLD_OFF);
-  line(`${date}  ${time}`);
-  push(BOLD_ON); line(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **'); push(BOLD_OFF);
+  // Order info
+  bold('ORDER #' + String(order.order_number || ''));
+  line(date + '  ' + time);
+  bold(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **');
   divider();
 
-  push(ALIGN_LEFT);
-  push(BOLD_ON); line('CUSTOMER:'); push(BOLD_OFF);
-  line(order.customer_name || '');
-  line(order.customer_phone || '');
+  // Customer
+  bold('CUSTOMER:');
+  line(order.customer_name);
+  line(order.customer_phone);
   if (order.order_type === 'delivery' && order.delivery_address) {
     line(order.delivery_address);
     if (order.delivery_postal_code) line(order.delivery_postal_code);
   }
   divider();
 
-  push(BOLD_ON); line('ITEMS:'); push(BOLD_OFF);
-  if (items.length === 0) {
+  // Items - plain text, no formatting
+  bold('ITEMS:');
+  if (!items || items.length === 0) {
     line('(no items)');
   } else {
-    for (const item of items) {
-      try {
-        const qty = parseInt(item.qty) || 1;
-        const price = parseFloat(item.price) || 0;
-        const itemName = `${qty}x ${String(item.name || '')}`;
-        const itemPrice = `$${(price * qty).toFixed(2)}`;
-        line(padLine(itemName, itemPrice));
-        const opts = String(item.options || '').trim();
-        if (opts) line(`  ${opts}`);
-      } catch(e) { line(`item error: ${e.message}`); }
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const qty   = parseInt(item.qty) || 1;
+      const price = parseFloat(item.price) || 0;
+      const name  = String(item.name || 'Item');
+      const total = (qty * price).toFixed(2);
+      line(padLine(qty + 'x ' + name, '$' + total));
+      const opts = String(item.options || '').trim();
+      if (opts) line('  ' + opts);
     }
   }
   divider();
 
-  try {
-    const subtotal = parseFloat(order.subtotal) || 0;
-    const deliveryFee = parseFloat(order.delivery_fee) || 0;
-    const discount = parseFloat(order.discount) || 0;
-    const tax = parseFloat(order.tax) || 0;
-    const total = parseFloat(order.total) || 0;
+  // Totals - plain text
+  const subtotal    = parseFloat(order.subtotal)     || 0;
+  const deliveryFee = parseFloat(order.delivery_fee) || 0;
+  const discount    = parseFloat(order.discount)     || 0;
+  const tax         = parseFloat(order.tax)          || 0;
+  const total       = parseFloat(order.total)        || 0;
 
-    line(padLine('Subtotal:', `$${subtotal.toFixed(2)}`));
-    if (deliveryFee > 0) line(padLine('Delivery Fee:', `$${deliveryFee.toFixed(2)}`));
-    if (discount > 0) line(padLine(`Promo:`, `-$${discount.toFixed(2)}`));
-    if (tax > 0) line(padLine('Tax:', `$${tax.toFixed(2)}`));
-    push(BOLD_ON); line(padLine('TOTAL:', `$${total.toFixed(2)}`)); push(BOLD_OFF);
-  } catch(e) { line(`totals error: ${e.message}`); }
+  line(padLine('Subtotal:', '$' + subtotal.toFixed(2)));
+  if (deliveryFee > 0) line(padLine('Delivery Fee:', '$' + deliveryFee.toFixed(2)));
+  if (discount    > 0) line(padLine('Promo:', '-$' + discount.toFixed(2)));
+  if (tax         > 0) line(padLine('Tax:', '$' + tax.toFixed(2)));
+  bold(padLine('TOTAL:', '$' + total.toFixed(2)));
   divider();
 
-  push(ALIGN_CENTER);
-  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER';
-  line(`PAYMENT: ${pm}`);
+  // Payment
+  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER'
+    : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
+  center('PAYMENT: ' + pm);
   divider();
 
-  if (order.special_instructions && order.special_instructions.trim()) {
-    push(ALIGN_LEFT);
-    push(BOLD_ON); line('SPECIAL INSTRUCTIONS:'); push(BOLD_OFF);
+  // Special instructions
+  if (order.special_instructions && String(order.special_instructions).trim()) {
+    bold('SPECIAL INSTRUCTIONS:');
     line(order.special_instructions);
     divider();
   }
 
+  // Est time
   if (order.estimated_time) {
-    push(ALIGN_CENTER, BOLD_ON);
-    line(`EST. TIME: ${order.estimated_time} MIN`);
-    push(BOLD_OFF);
+    center('EST. TIME: ' + order.estimated_time + ' MIN');
   }
 
-  push(LF, LF, LF, CUT);
+  // Feed and cut
+  push(LF, LF, LF);
+  push([GS, 0x56, 0x41, 0x10]);
+
   return new Uint8Array(bytes);
 }
 
@@ -576,12 +583,9 @@ async function sendToPrinter(data) {
   const chunkSize = 512;
   for (let i = 0; i < data.length; i += chunkSize) {
     const chunk = data.slice(i, i + chunkSize);
-    try {
-      await printerChar.writeValueWithoutResponse(chunk);
-    } catch(e) {
-      await printerChar.writeValue(chunk);
-    }
-    await new Promise(r => setTimeout(r, 60));
+    try { await printerChar.writeValueWithoutResponse(chunk); }
+    catch(e) { await printerChar.writeValue(chunk); }
+    await new Promise(r => setTimeout(r, 80));
   }
 }
 
@@ -602,9 +606,11 @@ async function printTest() {
     tax: 4.07,
     total: 38.02,
     payment_method: 'in_store',
-    special_instructions: '',
+    special_instructions: 'No MSG please',
     estimated_time: 20
   };
+  log(`Test items count: ${testOrder.items.length}`, 'info');
+  log(`Test subtotal: ${testOrder.subtotal}`, 'info');
   log('Printing test ticket...', 'info');
   await printOrder(testOrder);
 }
