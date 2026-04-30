@@ -964,7 +964,10 @@ function renderOrders() {
 }
 
 function renderOrderCard(order) {
-  const items = order.items || [];
+  let items = order.items || [];
+  if (typeof items === 'string') {
+    try { items = JSON.parse(items); } catch(e) { items = []; }
+  }
   const itemsHtml = items.map(i => `
     <div class="order-item">
       <div>
@@ -1398,13 +1401,14 @@ async function loadHistory() {
   tbody.innerHTML = orders.map(o => {
     const d = new Date(o.created_at);
     const dateStr = d.toLocaleDateString('en-CA') + ' ' + d.toLocaleTimeString('en-CA', {hour:'2-digit',minute:'2-digit'});
-    const items = (o.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
+    const items = typeof o.items === 'string' ? JSON.parse(o.items || '[]') : (o.items || []);
+    const itemStr = items.map(i => `${i.qty}x ${i.name}`).join(', ');
     return `<tr>
       <td style="font-family:var(--mono);color:var(--accent)">#${o.order_number}</td>
       <td style="font-family:var(--mono);font-size:12px">${dateStr}</td>
       <td>${o.customer_name}</td>
       <td><span class="order-type-badge ${o.order_type}" style="font-size:11px">${o.order_type}</span></td>
-      <td style="color:var(--text2);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
+      <td style="color:var(--text2);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${itemStr}</td>
       <td style="font-family:var(--mono)">$${parseFloat(o.total).toFixed(2)}</td>
       <td><span class="status-pill ${o.status}">${o.status}</span></td>
     </tr>`;
