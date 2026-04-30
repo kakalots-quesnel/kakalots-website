@@ -522,25 +522,32 @@ function buildReceipt(order) {
     line('(no items)');
   } else {
     for (const item of items) {
-      const itemName = `${item.qty}x ${item.name}`;
-      const itemPrice = `$${(parseFloat(item.price) * parseInt(item.qty)).toFixed(2)}`;
-      line(padLine(itemName, itemPrice));
-      if (item.options && item.options.trim()) line(`  ${item.options}`);
+      try {
+        const qty = parseInt(item.qty) || 1;
+        const price = parseFloat(item.price) || 0;
+        const itemName = `${qty}x ${String(item.name || '')}`;
+        const itemPrice = `$${(price * qty).toFixed(2)}`;
+        line(padLine(itemName, itemPrice));
+        const opts = String(item.options || '').trim();
+        if (opts) line(`  ${opts}`);
+      } catch(e) { line(`item error: ${e.message}`); }
     }
   }
   divider();
 
-  const subtotal = parseFloat(order.subtotal || 0);
-  const deliveryFee = parseFloat(order.delivery_fee || 0);
-  const discount = parseFloat(order.discount || 0);
-  const tax = parseFloat(order.tax || 0);
-  const total = parseFloat(order.total || 0);
+  try {
+    const subtotal = parseFloat(order.subtotal) || 0;
+    const deliveryFee = parseFloat(order.delivery_fee) || 0;
+    const discount = parseFloat(order.discount) || 0;
+    const tax = parseFloat(order.tax) || 0;
+    const total = parseFloat(order.total) || 0;
 
-  line(padLine('Subtotal:', `$${subtotal.toFixed(2)}`));
-  if (deliveryFee > 0) line(padLine('Delivery Fee:', `$${deliveryFee.toFixed(2)}`));
-  if (discount > 0) line(padLine(`Promo${order.promo_code ? ' ('+order.promo_code+')' : ''}:`, `-$${discount.toFixed(2)}`));
-  if (tax > 0) line(padLine('Tax:', `$${tax.toFixed(2)}`));
-  push(BOLD_ON); line(padLine('TOTAL:', `$${total.toFixed(2)}`)); push(BOLD_OFF);
+    line(padLine('Subtotal:', `$${subtotal.toFixed(2)}`));
+    if (deliveryFee > 0) line(padLine('Delivery Fee:', `$${deliveryFee.toFixed(2)}`));
+    if (discount > 0) line(padLine(`Promo:`, `-$${discount.toFixed(2)}`));
+    if (tax > 0) line(padLine('Tax:', `$${tax.toFixed(2)}`));
+    push(BOLD_ON); line(padLine('TOTAL:', `$${total.toFixed(2)}`)); push(BOLD_OFF);
+  } catch(e) { line(`totals error: ${e.message}`); }
   divider();
 
   push(ALIGN_CENTER);
