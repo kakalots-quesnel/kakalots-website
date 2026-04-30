@@ -511,7 +511,7 @@ function buildReceipt(order) {
   receipt += DIVIDER;
 
   receipt += BOLD_ON + 'ITEMS:' + BOLD_OFF + LF;
-  const items = order.items || [];
+  const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
   items.forEach(item => {
     const name = `${item.qty}x ${item.name}`;
     const price = `$${(item.price * item.qty).toFixed(2)}`;
