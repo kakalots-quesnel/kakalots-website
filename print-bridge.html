@@ -477,7 +477,25 @@ async function printOrder(order) {
 }
 
 function buildReceipt(order) {
-  const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
+  // Sanitize and parse items — fix curly quotes, Chinese commas, etc.
+  let items = [];
+  try {
+    let rawItems = order.items;
+    if (typeof rawItems === 'string') {
+      rawItems = rawItems
+        .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')  // curly double quotes
+        .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")  // curly single quotes
+        .replace(/\uFF0C/g, ',')   // Chinese comma ，
+        .replace(/\uFF1A/g, ':')   // Chinese colon ：
+        .replace(/\u3001/g, ',');  // Japanese comma 、
+      items = JSON.parse(rawItems);
+    } else if (Array.isArray(rawItems)) {
+      items = rawItems;
+    }
+  } catch(e) {
+    log('Items parse error: ' + e.message, 'error');
+    items = [];
+  }
 
   function pad(left, right) {
     left = String(left); right = String(right);
@@ -509,25 +527,44 @@ function buildReceipt(order) {
   }
   r += '--------------------------------\n';
   r += 'ITEMS:\n';
-  if (!items || items.length === 0) {
+  // Normalize items — handle capitalized keys and curly quotes
+  const normalizedItems = items.map(item => {
+    // Find qty, price, name, options regardless of key capitalization
+    const keys = Object.keys(item);
+    const findVal = (names) => {
+      for (const k of keys) {
+        if (names.includes(k.toLowerCase())) return item[k];
+      }
+      return null;
+    };
+    return {
+      qty:     parseInt(findVal(['qty', 'quantity'])) || 1,
+      price:   parseFloat(String(findVal(['price']) || '0').replace(',', '.')) || 0,
+      name:    String(findVal(['name']) || 'Item'),
+      options: String(findVal(['options', 'option']) || '').trim()
+    };
+  });
+
+  if (!normalizedItems || normalizedItems.length === 0) {
     r += '(no items)\n';
   } else {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const qty = parseInt(item.qty) || 1;
-      const price = parseFloat(item.price) || 0;
-      const name = String(item.name || 'Item');
-      r += pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)) + '\n';
-      const opts = String(item.options || '').trim();
-      if (opts) r += '  ' + opts + '\n';
+    for (let i = 0; i < normalizedItems.length; i++) {
+      const item = normalizedItems[i];
+      r += pad(item.qty + 'x ' + item.name, '$' + (item.qty * item.price).toFixed(2)) + '\n';
+      if (item.options) r += '  ' + item.options + '\n';
     }
   }
   r += '--------------------------------\n';
-  r += pad('Subtotal:', '$' + (parseFloat(order.subtotal) || 0).toFixed(2)) + '\n';
-  if ((parseFloat(order.delivery_fee) || 0) > 0) r += pad('Delivery Fee:', '$' + parseFloat(order.delivery_fee).toFixed(2)) + '\n';
-  if ((parseFloat(order.discount) || 0) > 0) r += pad('Promo:', '-$' + parseFloat(order.discount).toFixed(2)) + '\n';
-  if ((parseFloat(order.tax) || 0) > 0) r += pad('Tax:', '$' + parseFloat(order.tax).toFixed(2)) + '\n';
-  r += pad('TOTAL:', '$' + (parseFloat(order.total) || 0).toFixed(2)) + '\n';
+  const subtotal    = parseFloat(String(order.subtotal || 0).replace(',', '.')) || 0;
+  const deliveryFee = parseFloat(String(order.delivery_fee || 0).replace(',', '.')) || 0;
+  const discount    = parseFloat(String(order.discount || 0).replace(',', '.')) || 0;
+  const tax         = parseFloat(String(order.tax || 0).replace(',', '.')) || 0;
+  const total       = parseFloat(String(order.total || 0).replace(',', '.')) || 0;
+  r += pad('Subtotal:', '$' + subtotal.toFixed(2)) + '\n';
+  if (deliveryFee > 0) r += pad('Delivery Fee:', '$' + deliveryFee.toFixed(2)) + '\n';
+  if (discount > 0) r += pad('Promo:', '-$' + discount.toFixed(2)) + '\n';
+  if (tax > 0) r += pad('Tax:', '$' + tax.toFixed(2)) + '\n';
+  r += pad('TOTAL:', '$' + total.toFixed(2)) + '\n';
   r += '--------------------------------\n';
   const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
   r += '\x1B\x61\x01';
@@ -563,38 +600,31 @@ async function sendToPrinter(data) {
 
 async function printTest() {
   if (!printerChar) { log('Printer not connected', 'error'); return; }
-  log('Printing simple test...', 'info');
-  try {
-    // Send the simplest possible receipt as one block
-    const text = [
-      '\x1B\x40',           // init
-      '--------------------------------\n',
-      'ITEMS:\n',
-      '1x Spring Rolls         $8.95\n',
-      '2x Fried Rice          $25.00\n',
-      '--------------------------------\n',
-      'Subtotal:              $33.95\n',
-      'Tax:                    $4.07\n',
-      'TOTAL:                 $38.02\n',
-      '--------------------------------\n',
-      'PAYMENT: PAY AT COUNTER\n',
-      '\n\n\n',
-      '\x1D\x56\x41\x10'    // cut
-    ].join('');
-
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    log(`Sending ${data.length} bytes...`, 'info');
-
-    try { await printerChar.writeValueWithoutResponse(data); }
-    catch(e) { await printerChar.writeValue(data); }
-
-    log('Sent! Check printer.', 'success');
-    printCount++;
-    document.getElementById('print-count').textContent = `${printCount} ticket${printCount !== 1 ? 's' : ''}`;
-  } catch(e) {
-    log('Print error: ' + e.message, 'error');
-  }
+  log('Printing test with real data structure...', 'info');
+  // Use exact same structure as what Supabase returns
+  const testOrder = {
+    id: 'test',
+    order_number: 'TEST',
+    created_at: new Date().toISOString(),
+    order_type: 'pickup',
+    customer_name: 'Test Customer',
+    customer_phone: '778-555-0000',
+    delivery_address: null,
+    delivery_postal_code: null,
+    items: [
+      {"qty": 1, "name": "BBQ Pork Chop Suey", "price": 20.5, "options": ""},
+      {"qty": 1, "name": "Chicken Chop Suey", "price": 19.5, "options": ""}
+    ],
+    subtotal: 40,
+    delivery_fee: 0,
+    discount: 0,
+    tax: 2,
+    total: 42,
+    payment_method: 'in_store',
+    special_instructions: '',
+    estimated_time: 20
+  };
+  await printOrder(testOrder);
 }
 
 // ── UTILS ──
