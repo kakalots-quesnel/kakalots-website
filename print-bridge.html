@@ -302,6 +302,8 @@ function subscribeToOrders() {
           log('Could not fetch full order, using payload', 'error');
           printOrder(payload.new);
         } else {
+          log(`Fetched order items: ${JSON.stringify(data.items)}`, 'info');
+          log(`Fetched subtotal: ${data.subtotal}, total: ${data.total}`, 'info');
           printOrder(data);
         }
       } catch(e) {
