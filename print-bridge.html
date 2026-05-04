@@ -465,118 +465,77 @@ async function printOrder(order) {
 
 function buildReceipt(order) {
   const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
-  const bytes = [];
 
-  // Simple push - just convert text to bytes
-  function push(...args) {
-    for (const a of args) {
-      if (typeof a === 'number') bytes.push(a);
-      else if (typeof a === 'string') {
-        for (let i = 0; i < a.length; i++) bytes.push(a.charCodeAt(i) & 0xFF);
-      } else if (Array.isArray(a)) bytes.push(...a);
-    }
-  }
-
-  const LF = 0x0A;
-  const ESC = 0x1B;
-  const GS  = 0x1D;
-
-  function line(text) { push(String(text || ''), LF); }
-  function blank()    { push(LF); }
-  function divider()  { line('--------------------------------'); }
-  function center(text) { push([ESC, 0x61, 0x01], String(text), LF, [ESC, 0x61, 0x00]); }
-  function bold(text) { push([ESC, 0x45, 0x01], String(text), LF, [ESC, 0x45, 0x00]); }
-
-  function padLine(left, right) {
+  function pad(left, right) {
     left = String(left); right = String(right);
-    const total = 32;
-    const spaces = Math.max(1, total - left.length - right.length);
+    const spaces = Math.max(1, 32 - left.length - right.length);
     return left + ' '.repeat(spaces) + right;
   }
 
   const time = new Date(order.created_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' });
   const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
 
-  // Init printer
-  push([ESC, 0x40]);
-
-  // Header
-  center('KAKALOTS');
-  center('496 Anderson Dr, Quesnel BC');
-  center('778-414-6789');
-  divider();
-
-  // Order info
-  bold('ORDER #' + String(order.order_number || ''));
-  line(date + '  ' + time);
-  bold(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **');
-  divider();
-
-  // Customer
-  bold('CUSTOMER:');
-  line(order.customer_name);
-  line(order.customer_phone);
+  let r = '';
+  r += '\x1B\x40';
+  r += '\x1B\x61\x01';
+  r += 'KAKALOTS\n';
+  r += '496 Anderson Dr, Quesnel BC\n';
+  r += '778-414-6789\n';
+  r += '\x1B\x61\x00';
+  r += '--------------------------------\n';
+  r += 'ORDER #' + String(order.order_number || '') + '\n';
+  r += date + '  ' + time + '\n';
+  r += (order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **') + '\n';
+  r += '--------------------------------\n';
+  r += 'CUSTOMER:\n';
+  r += String(order.customer_name || '') + '\n';
+  r += String(order.customer_phone || '') + '\n';
   if (order.order_type === 'delivery' && order.delivery_address) {
-    line(order.delivery_address);
-    if (order.delivery_postal_code) line(order.delivery_postal_code);
+    r += String(order.delivery_address) + '\n';
+    if (order.delivery_postal_code) r += String(order.delivery_postal_code) + '\n';
   }
-  divider();
-
-  // Items - plain text, no formatting
-  bold('ITEMS:');
+  r += '--------------------------------\n';
+  r += 'ITEMS:\n';
   if (!items || items.length === 0) {
-    line('(no items)');
+    r += '(no items)\n';
   } else {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const qty   = parseInt(item.qty) || 1;
+      const qty = parseInt(item.qty) || 1;
       const price = parseFloat(item.price) || 0;
-      const name  = String(item.name || 'Item');
-      const total = (qty * price).toFixed(2);
-      line(padLine(qty + 'x ' + name, '$' + total));
+      const name = String(item.name || 'Item');
+      r += pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)) + '\n';
       const opts = String(item.options || '').trim();
-      if (opts) line('  ' + opts);
+      if (opts) r += '  ' + opts + '\n';
     }
   }
-  divider();
-
-  // Totals - plain text
-  const subtotal    = parseFloat(order.subtotal)     || 0;
-  const deliveryFee = parseFloat(order.delivery_fee) || 0;
-  const discount    = parseFloat(order.discount)     || 0;
-  const tax         = parseFloat(order.tax)          || 0;
-  const total       = parseFloat(order.total)        || 0;
-
-  line(padLine('Subtotal:', '$' + subtotal.toFixed(2)));
-  if (deliveryFee > 0) line(padLine('Delivery Fee:', '$' + deliveryFee.toFixed(2)));
-  if (discount    > 0) line(padLine('Promo:', '-$' + discount.toFixed(2)));
-  if (tax         > 0) line(padLine('Tax:', '$' + tax.toFixed(2)));
-  bold(padLine('TOTAL:', '$' + total.toFixed(2)));
-  divider();
-
-  // Payment
-  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER'
-    : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
-  center('PAYMENT: ' + pm);
-  divider();
-
-  // Special instructions
+  r += '--------------------------------\n';
+  r += pad('Subtotal:', '$' + (parseFloat(order.subtotal) || 0).toFixed(2)) + '\n';
+  if ((parseFloat(order.delivery_fee) || 0) > 0) r += pad('Delivery Fee:', '$' + parseFloat(order.delivery_fee).toFixed(2)) + '\n';
+  if ((parseFloat(order.discount) || 0) > 0) r += pad('Promo:', '-$' + parseFloat(order.discount).toFixed(2)) + '\n';
+  if ((parseFloat(order.tax) || 0) > 0) r += pad('Tax:', '$' + parseFloat(order.tax).toFixed(2)) + '\n';
+  r += pad('TOTAL:', '$' + (parseFloat(order.total) || 0).toFixed(2)) + '\n';
+  r += '--------------------------------\n';
+  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
+  r += '\x1B\x61\x01';
+  r += 'PAYMENT: ' + pm + '\n';
+  r += '\x1B\x61\x00';
+  r += '--------------------------------\n';
   if (order.special_instructions && String(order.special_instructions).trim()) {
-    bold('SPECIAL INSTRUCTIONS:');
-    line(order.special_instructions);
-    divider();
+    r += 'SPECIAL INSTRUCTIONS:\n';
+    r += String(order.special_instructions) + '\n';
+    r += '--------------------------------\n';
   }
-
-  // Est time
   if (order.estimated_time) {
-    center('EST. TIME: ' + order.estimated_time + ' MIN');
+    r += '\x1B\x61\x01';
+    r += 'EST. TIME: ' + order.estimated_time + ' MIN\n';
+    r += '\x1B\x61\x00';
   }
+  r += '\n\n\n';
+  r += '\x1D\x56\x41\x10';
 
-  // Feed and cut
-  push(LF, LF, LF);
-  push([GS, 0x56, 0x41, 0x10]);
-
-  return new Uint8Array(bytes);
+  const encoder = new TextEncoder();
+  return encoder.encode(r);
 }
 
 async function sendToPrinter(data) {
