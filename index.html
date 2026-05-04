@@ -1065,6 +1065,7 @@ function OrderPage() {
   const [tipInput, setTipInput] = useState('');
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' });
   const [instructions, setInstructions] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('ASAP');
   const [submitting, setSubmitting] = useState(false);
   const [orderNum, setOrderNum] = useState(null);
   const [zoneError, setZoneError] = useState('');
@@ -1125,6 +1126,39 @@ function OrderPage() {
   const taxableAmount = cartTotal - (appliedPromo?.type !== 'free_delivery' ? discountAmount : 0) + (appliedPromo?.type === 'free_delivery' ? 0 : parseFloat(deliveryFee));
   const taxAmount = taxableAmount * taxRate;
   const grandTotal = cartTotal - discountAmount + parseFloat(deliveryFee) - (appliedPromo?.type === 'free_delivery' ? parseFloat(deliveryFee) : 0) + taxAmount + tip;
+
+  function generateTimeSlots() {
+    const slots = ['ASAP'];
+    const now = new Date();
+    const pacificNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Vancouver' }));
+    const day = pacificNow.getDay();
+    // Get today's hours from settings
+    const dayHours = {
+      0: { open: '15:00', close: '20:30' }, // Sun
+      1: { open: '12:00', close: '20:30' }, // Mon
+      2: null,                               // Tue closed
+      3: { open: '12:00', close: '20:30' }, // Wed
+      4: { open: '12:00', close: '20:30' }, // Thu
+      5: { open: '12:00', close: '20:30' }, // Fri
+      6: { open: '15:00', close: '20:30' }, // Sat
+    };
+    const todayHours = dayHours[day];
+    if (!todayHours) return slots;
+    const [closeH, closeM] = todayHours.close.split(':').map(Number);
+    const closeTotal = closeH * 60 + closeM;
+    // Start from next 15-min interval at least 30 min from now
+    const nowMins = pacificNow.getHours() * 60 + pacificNow.getMinutes();
+    let start = Math.ceil((nowMins + 30) / 15) * 15;
+    while (start <= closeTotal) {
+      const h = Math.floor(start / 60);
+      const m = start % 60;
+      const ampm = h >= 12 ? 'pm' : 'am';
+      const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      slots.push(`${h12}:${m.toString().padStart(2, '0')} ${ampm}`);
+      start += 15;
+    }
+    return slots;
+  }
 
   async function applyPromo() {
     const code = promoInput.trim().toUpperCase();
@@ -1217,6 +1251,7 @@ function OrderPage() {
       tax: taxAmount,
       total: grandTotal,
       special_instructions: instructions,
+      scheduled_time: scheduledTime,
       payment_method: orderType === 'delivery' ? (form.payment_method || 'cash') : 'in_store',
       tip: tip,
       status: 'pending'
@@ -1284,7 +1319,7 @@ function OrderPage() {
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
         <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
-        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' }); setInstructions(''); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); setTip(0); setTipInput(''); }}>Place Another Order</button>
+        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' }); setInstructions(''); setScheduledTime('ASAP'); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); setTip(0); setTipInput(''); }}>Place Another Order</button>
       </div>
     </>
   );
@@ -1654,6 +1689,21 @@ function OrderPage() {
               {promoError && <p style={{ color: '#da0908', fontSize: '0.82rem', marginTop: '6px' }}>{promoError}</p>}
             </div>
             <div>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', color: '#333' }}>
+                {orderType === 'pickup' ? 'Pickup Time' : 'Delivery Time'}
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                {generateTimeSlots().map(slot => (
+                  <button key={slot} onClick={() => setScheduledTime(slot)}
+                    style={{ padding: '9px 16px', borderRadius: '3px', border: `2px solid ${scheduledTime === slot ? '#da0908' : '#ddd'}`, background: scheduledTime === slot ? '#fdf5f5' : '#fff', color: scheduledTime === slot ? '#da0908' : '#333', fontFamily: 'Lato, sans-serif', fontWeight: scheduledTime === slot ? '700' : '400', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    {slot === 'ASAP' ? '⚡ ASAP' : slot}
+                  </button>
+                ))}
+              </div>
+              {scheduledTime !== 'ASAP' && <p style={{ fontSize: '0.78rem', color: '#888', marginTop: '4px' }}>We'll have your order ready by {scheduledTime}</p>}
+            </div>
+
+            <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Special Instructions (optional)</label>
               <textarea placeholder="Allergies, special requests, delivery notes..." value={instructions}
                 onChange={e => setInstructions(e.target.value)}
@@ -1681,6 +1731,9 @@ function OrderPage() {
           <div style={{ background: '#da0908', color: '#fff', padding: '14px 16px', fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1rem' }}>Order Summary</div>
           <div style={{ padding: '16px' }}>
             <div style={{ marginBottom: '8px', fontSize: '0.82rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{orderType === 'pickup' ? '🥡 Pickup' : '🛵 Delivery'}</div>
+            <div style={{ marginBottom: '10px', fontSize: '0.88rem', fontWeight: '700', color: scheduledTime === 'ASAP' ? '#4caf7d' : '#da0908' }}>
+              ⏰ {scheduledTime === 'ASAP' ? 'As Soon As Possible' : `Scheduled for ${scheduledTime}`}
+            </div>
             {cart.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f9f0f0', gap: '8px' }}>
                 <div style={{ flex: 1 }}>
