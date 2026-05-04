@@ -590,29 +590,39 @@ async function sendToPrinter(data) {
 }
 
 async function printTest() {
-  const testOrder = {
-    order_number: 'TEST',
-    created_at: new Date().toISOString(),
-    order_type: 'pickup',
-    customer_name: 'Test Customer',
-    customer_phone: '778-555-0000',
-    items: [
-      { qty: 1, name: 'Spring Rolls', price: 8.95, options: '' },
-      { qty: 2, name: 'Fried Rice', price: 12.50, options: 'Extra sauce' }
-    ],
-    subtotal: 33.95,
-    delivery_fee: 0,
-    discount: 0,
-    tax: 4.07,
-    total: 38.02,
-    payment_method: 'in_store',
-    special_instructions: 'No MSG please',
-    estimated_time: 20
-  };
-  log(`Test items count: ${testOrder.items.length}`, 'info');
-  log(`Test subtotal: ${testOrder.subtotal}`, 'info');
-  log('Printing test ticket...', 'info');
-  await printOrder(testOrder);
+  if (!printerChar) { log('Printer not connected', 'error'); return; }
+  log('Printing simple test...', 'info');
+  try {
+    // Send the simplest possible receipt as one block
+    const text = [
+      '\x1B\x40',           // init
+      '--------------------------------\n',
+      'ITEMS:\n',
+      '1x Spring Rolls         $8.95\n',
+      '2x Fried Rice          $25.00\n',
+      '--------------------------------\n',
+      'Subtotal:              $33.95\n',
+      'Tax:                    $4.07\n',
+      'TOTAL:                 $38.02\n',
+      '--------------------------------\n',
+      'PAYMENT: PAY AT COUNTER\n',
+      '\n\n\n',
+      '\x1D\x56\x41\x10'    // cut
+    ].join('');
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    log(`Sending ${data.length} bytes...`, 'info');
+
+    try { await printerChar.writeValueWithoutResponse(data); }
+    catch(e) { await printerChar.writeValue(data); }
+
+    log('Sent! Check printer.', 'success');
+    printCount++;
+    document.getElementById('print-count').textContent = `${printCount} ticket${printCount !== 1 ? 's' : ''}`;
+  } catch(e) {
+    log('Print error: ' + e.message, 'error');
+  }
 }
 
 // ── UTILS ──
