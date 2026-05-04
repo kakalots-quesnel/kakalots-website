@@ -973,6 +973,7 @@ function renderOrderCard(order) {
       <div>
         <div class="order-item-name">${i.qty}x ${i.name}</div>
         ${i.options ? `<div class="order-item-opts">${i.options}</div>` : ''}
+        ${i.comment ? `<div class="order-item-opts" style="color:var(--gold);font-style:italic">📝 ${i.comment}</div>` : ''}
       </div>
       <div class="order-item-price">$${(i.price * i.qty).toFixed(2)}</div>
     </div>
@@ -1015,6 +1016,7 @@ function renderOrderCard(order) {
           ${order.discount > 0 ? `<div class="order-total-row" style="color:var(--green)"><span>Promo ${order.promo_code ? '('+order.promo_code+')' : ''}</span><span>-$${parseFloat(order.discount).toFixed(2)}</span></div>` : ''}
           ${order.delivery_fee > 0 ? `<div class="order-total-row"><span>Delivery Fee</span><span>$${order.delivery_fee.toFixed(2)}</span></div>` : ''}
           ${order.tax > 0 ? `<div class="order-total-row"><span>Tax</span><span>$${parseFloat(order.tax).toFixed(2)}</span></div>` : ''}
+          ${order.tip > 0 ? `<div class="order-total-row" style="color:var(--gold)"><span>Tip</span><span>$${parseFloat(order.tip).toFixed(2)}</span></div>` : ''}
           <div class="order-total-row order-grand-total"><span>TOTAL</span><span>$${order.total.toFixed(2)}</span></div>
         </div>
       </div>
