@@ -559,8 +559,12 @@ function buildReceipt(order) {
 }
 
 async function sendToPrinter(data) {
-  try { await printerChar.writeValueWithoutResponse(data); }
-  catch(e) { await printerChar.writeValue(data); }
+  const chunkSize = 200; // well under 512 byte limit
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+    await printerChar.writeValueWithoutResponse(chunk);
+    await new Promise(r => setTimeout(r, 100)); // wait between chunks
+  }
 }
 
 async function printTest() {
