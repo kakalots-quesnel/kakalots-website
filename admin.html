@@ -688,22 +688,32 @@
 <div class="modal-overlay" id="accept-modal">
   <div class="modal" style="max-width:440px">
     <h2>Accept Order</h2>
-    <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Set an estimated time and confirm acceptance. A confirmation email will be sent to the customer.</p>
-    <div class="form-group">
-      <label class="form-label">Estimated Time</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(15)">15 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(20)">20 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(25)">25 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(30)">30 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(45)">45 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="setEstTime(60)">60 min</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input class="form-input" id="est-time-input" type="number" placeholder="Custom (minutes)" style="max-width:180px">
-        <span style="font-size:13px;color:var(--text2)">minutes</span>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Confirm acceptance. A confirmation email will be sent to the customer.</p>
+
+    <div id="est-time-section">
+      <div class="form-group">
+        <label class="form-label">Estimated Time</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(15)">15 min</button>
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(20)">20 min</button>
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(25)">25 min</button>
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(30)">30 min</button>
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(45)">45 min</button>
+          <button class="btn btn-ghost btn-sm" onclick="setEstTime(60)">60 min</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input class="form-input" id="est-time-input" type="number" placeholder="Custom (minutes)" style="max-width:180px">
+          <span style="font-size:13px;color:var(--text2)">minutes</span>
+        </div>
       </div>
     </div>
+
+    <div id="scheduled-time-info" style="display:none;background:var(--surface2);border:1px solid var(--accent);border-radius:4px;padding:14px 16px;margin-bottom:16px">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:4px">Scheduled Order</p>
+      <p style="font-size:15px;font-weight:700;color:var(--accent)">⏰ Ready by <span id="scheduled-time-label"></span></p>
+      <p style="font-size:12px;color:var(--text2);margin-top:6px">No estimated time needed — customer selected a specific time.</p>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('accept-modal')">Cancel</button>
       <button class="btn-accept" onclick="confirmAccept()" style="padding:9px 20px;border-radius:3px">✓ Confirm Accept</button>
@@ -984,7 +994,7 @@ function renderOrderCard(order) {
   let actions = '';
   if (order.status === 'pending') {
     actions = `
-      <button class="btn-accept" onclick="openAcceptModal('${order.id}', '${order.order_type}', '${order.customer_name}', '${order.customer_email || ''}', '${order.customer_phone}', '${order.total}')">✓ Accept</button>
+      <button class="btn-accept" onclick="openAcceptModal('${order.id}', '${order.order_type}', '${order.customer_name}', '${order.customer_email || ''}', '${order.customer_phone}', '${order.total}', '${order.scheduled_time || 'ASAP'}')">✓ Accept</button>
       <button class="btn-reject" onclick="openRejectModal('${order.id}', '${order.customer_name}', '${order.customer_email || ''}')">✕ Reject</button>
     `;
   } else if (order.status === 'accepted') {
@@ -1601,9 +1611,13 @@ const EDGE_FUNCTION_URL = 'https://wbdyswkzdzqrxwkhnuaf.supabase.co/functions/v1
 let pendingAcceptOrder = null;
 let pendingRejectOrder = null;
 
-function openAcceptModal(id, orderType, customerName, customerEmail, customerPhone, total) {
-  pendingAcceptOrder = { id, orderType, customerName, customerEmail, customerPhone, total };
+function openAcceptModal(id, orderType, customerName, customerEmail, customerPhone, total, scheduledTime) {
+  pendingAcceptOrder = { id, orderType, customerName, customerEmail, customerPhone, total, scheduledTime };
   document.getElementById('est-time-input').value = '';
+  const isScheduled = scheduledTime && scheduledTime !== 'ASAP';
+  document.getElementById('est-time-section').style.display = isScheduled ? 'none' : 'block';
+  document.getElementById('scheduled-time-info').style.display = isScheduled ? 'block' : 'none';
+  document.getElementById('scheduled-time-label').textContent = scheduledTime;
   document.getElementById('accept-modal').classList.add('open');
 }
 
@@ -1612,9 +1626,10 @@ function setEstTime(mins) {
 }
 
 async function confirmAccept() {
-  const estTime = parseInt(document.getElementById('est-time-input').value);
-  if (!estTime || estTime < 1) return toast('Please enter an estimated time', 'error');
   const order = pendingAcceptOrder;
+  const isScheduled = order.scheduledTime && order.scheduledTime !== 'ASAP';
+  const estTime = isScheduled ? null : parseInt(document.getElementById('est-time-input').value);
+  if (!isScheduled && (!estTime || estTime < 1)) return toast('Please enter an estimated time', 'error');
   await db.from('orders').update({ status: 'accepted', estimated_time: estTime, updated_at: new Date().toISOString() }).eq('id', order.id);
   const idx = allOrders.findIndex(o => o.id === order.id);
   if (idx !== -1) { allOrders[idx].status = 'accepted'; allOrders[idx].estimated_time = estTime; }
