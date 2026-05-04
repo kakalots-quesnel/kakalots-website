@@ -477,125 +477,90 @@ async function printOrder(order) {
 }
 
 function buildReceipt(order) {
-  // Sanitize and parse items — fix curly quotes, Chinese commas, etc.
   let items = [];
   try {
-    let rawItems = order.items;
-    if (typeof rawItems === 'string') {
-      rawItems = rawItems
-        .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')  // curly double quotes
-        .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")  // curly single quotes
-        .replace(/\uFF0C/g, ',')   // Chinese comma ，
-        .replace(/\uFF1A/g, ':')   // Chinese colon ：
-        .replace(/\u3001/g, ',');  // Japanese comma 、
-      items = JSON.parse(rawItems);
-    } else if (Array.isArray(rawItems)) {
-      items = rawItems;
+    let raw = order.items;
+    if (typeof raw === 'string') {
+      raw = raw.replace(/[\u201C\u201D\u201E\u201F]/g, '"').replace(/\uFF0C/g, ',').replace(/\uFF1A/g, ':');
+      items = JSON.parse(raw);
+    } else if (Array.isArray(raw)) {
+      items = raw;
     }
-  } catch(e) {
-    log('Items parse error: ' + e.message, 'error');
-    items = [];
-  }
+  } catch(e) { items = []; }
 
   function pad(left, right) {
     left = String(left); right = String(right);
-    const spaces = Math.max(1, 32 - left.length - right.length);
-    return left + ' '.repeat(spaces) + right;
+    return left + ' '.repeat(Math.max(1, 32 - left.length - right.length)) + right;
   }
 
   const time = new Date(order.created_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' });
   const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
 
-  let r = '';
-  r += '\x1B\x40';
-  r += '\x1B\x61\x01';
-  r += 'KAKALOTS\n';
-  r += '496 Anderson Dr, Quesnel BC\n';
-  r += '778-414-6789\n';
-  r += '\x1B\x61\x00';
-  r += '--------------------------------\n';
-  r += 'ORDER #' + String(order.order_number || '') + '\n';
-  r += date + '  ' + time + '\n';
-  r += (order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **') + '\n';
-  r += '--------------------------------\n';
-  r += 'CUSTOMER:\n';
-  r += String(order.customer_name || '') + '\n';
-  r += String(order.customer_phone || '') + '\n';
+  const lines = [];
+  lines.push('KAKALOTS');
+  lines.push('496 Anderson Dr, Quesnel BC');
+  lines.push('778-414-6789');
+  lines.push('--------------------------------');
+  lines.push('ORDER #' + String(order.order_number || ''));
+  lines.push(date + '  ' + time);
+  lines.push(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **');
+  lines.push('--------------------------------');
+  lines.push('CUSTOMER:');
+  lines.push(String(order.customer_name || ''));
+  lines.push(String(order.customer_phone || ''));
   if (order.order_type === 'delivery' && order.delivery_address) {
-    r += String(order.delivery_address) + '\n';
-    if (order.delivery_postal_code) r += String(order.delivery_postal_code) + '\n';
+    lines.push(String(order.delivery_address));
+    if (order.delivery_postal_code) lines.push(String(order.delivery_postal_code));
   }
-  r += '--------------------------------\n';
-  r += 'ITEMS:\n';
-  // Normalize items — handle capitalized keys and curly quotes
-  const normalizedItems = items.map(item => {
-    // Find qty, price, name, options regardless of key capitalization
-    const keys = Object.keys(item);
-    const findVal = (names) => {
-      for (const k of keys) {
-        if (names.includes(k.toLowerCase())) return item[k];
-      }
-      return null;
-    };
-    return {
-      qty:     parseInt(findVal(['qty', 'quantity'])) || 1,
-      price:   parseFloat(String(findVal(['price']) || '0').replace(',', '.')) || 0,
-      name:    String(findVal(['name']) || 'Item'),
-      options: String(findVal(['options', 'option']) || '').trim()
-    };
-  });
-
-  if (!normalizedItems || normalizedItems.length === 0) {
-    r += '(no items)\n';
+  lines.push('--------------------------------');
+  lines.push('ITEMS:');
+  if (items.length === 0) {
+    lines.push('(no items)');
   } else {
-    for (let i = 0; i < normalizedItems.length; i++) {
-      const item = normalizedItems[i];
-      r += pad(item.qty + 'x ' + item.name, '$' + (item.qty * item.price).toFixed(2)) + '\n';
-      if (item.options) r += '  ' + item.options + '\n';
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const keys = Object.keys(item);
+      const get = (names) => { for (const k of keys) { if (names.includes(k.toLowerCase())) return item[k]; } return null; };
+      const qty = parseInt(get(['qty','quantity'])) || 1;
+      const price = parseFloat(String(get(['price']) || '0')) || 0;
+      const name = String(get(['name']) || 'Item');
+      const opts = String(get(['options','option']) || '').trim();
+      lines.push(pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)));
+      if (opts) lines.push('  ' + opts);
     }
   }
-  r += '--------------------------------\n';
-  const subtotal    = parseFloat(String(order.subtotal || 0).replace(',', '.')) || 0;
-  const deliveryFee = parseFloat(String(order.delivery_fee || 0).replace(',', '.')) || 0;
-  const discount    = parseFloat(String(order.discount || 0).replace(',', '.')) || 0;
-  const tax         = parseFloat(String(order.tax || 0).replace(',', '.')) || 0;
-  const total       = parseFloat(String(order.total || 0).replace(',', '.')) || 0;
-  r += pad('Subtotal:', '$' + subtotal.toFixed(2)) + '\n';
-  if (deliveryFee > 0) r += pad('Delivery Fee:', '$' + deliveryFee.toFixed(2)) + '\n';
-  if (discount > 0) r += pad('Promo:', '-$' + discount.toFixed(2)) + '\n';
-  if (tax > 0) r += pad('Tax:', '$' + tax.toFixed(2)) + '\n';
-  r += pad('TOTAL:', '$' + total.toFixed(2)) + '\n';
-  r += '--------------------------------\n';
+  lines.push('--------------------------------');
+  const sub = parseFloat(order.subtotal) || 0;
+  const fee = parseFloat(order.delivery_fee) || 0;
+  const dis = parseFloat(order.discount) || 0;
+  const tax = parseFloat(order.tax) || 0;
+  const tot = parseFloat(order.total) || 0;
+  lines.push(pad('Subtotal:', '$' + sub.toFixed(2)));
+  if (fee > 0) lines.push(pad('Delivery Fee:', '$' + fee.toFixed(2)));
+  if (dis > 0) lines.push(pad('Promo:', '-$' + dis.toFixed(2)));
+  if (tax > 0) lines.push(pad('Tax:', '$' + tax.toFixed(2)));
+  lines.push(pad('TOTAL:', '$' + tot.toFixed(2)));
+  lines.push('--------------------------------');
   const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
-  r += '\x1B\x61\x01';
-  r += 'PAYMENT: ' + pm + '\n';
-  r += '\x1B\x61\x00';
-  r += '--------------------------------\n';
+  lines.push('PAYMENT: ' + pm);
+  lines.push('--------------------------------');
   if (order.special_instructions && String(order.special_instructions).trim()) {
-    r += 'SPECIAL INSTRUCTIONS:\n';
-    r += String(order.special_instructions) + '\n';
-    r += '--------------------------------\n';
+    lines.push('NOTE: ' + String(order.special_instructions));
+    lines.push('--------------------------------');
   }
-  if (order.estimated_time) {
-    r += '\x1B\x61\x01';
-    r += 'EST. TIME: ' + order.estimated_time + ' MIN\n';
-    r += '\x1B\x61\x00';
-  }
-  r += '\n\n\n';
-  r += '\x1D\x56\x41\x10';
+  if (order.estimated_time) lines.push('EST. TIME: ' + order.estimated_time + ' MIN');
+  lines.push('');
+  lines.push('');
+  lines.push('');
 
+  const text = lines.join('\n') + '\n';
   const encoder = new TextEncoder();
-  return encoder.encode(r);
+  return encoder.encode(text);
 }
 
 async function sendToPrinter(data) {
-  const chunkSize = 512;
-  for (let i = 0; i < data.length; i += chunkSize) {
-    const chunk = data.slice(i, i + chunkSize);
-    try { await printerChar.writeValueWithoutResponse(chunk); }
-    catch(e) { await printerChar.writeValue(chunk); }
-    await new Promise(r => setTimeout(r, 80));
-  }
+  try { await printerChar.writeValueWithoutResponse(data); }
+  catch(e) { await printerChar.writeValue(data); }
 }
 
 async function printTest() {
