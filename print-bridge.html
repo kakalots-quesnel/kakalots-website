@@ -291,11 +291,22 @@ function subscribeToOrders() {
       schema: 'public',
       table: 'orders',
       filter: 'status=eq.accepted'
-    }, (payload) => {
+    }, async (payload) => {
       log(`New accepted order #${payload.new.order_number}`, 'info');
       playBeep();
       flashScreen();
-      printOrder(payload.new);
+      // Fetch full order to ensure items/totals are included
+      try {
+        const { data, error } = await db.from('orders').select('*').eq('id', payload.new.id).single();
+        if (error || !data) {
+          log('Could not fetch full order, using payload', 'error');
+          printOrder(payload.new);
+        } else {
+          printOrder(data);
+        }
+      } catch(e) {
+        printOrder(payload.new);
+      }
     }).subscribe((status) => {
       if (status === 'SUBSCRIBED') {
         setSupabaseStatus(true);
