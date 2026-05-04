@@ -525,8 +525,10 @@ function buildReceipt(order) {
       const price = parseFloat(String(get(['price']) || '0')) || 0;
       const name = String(get(['name']) || 'Item');
       const opts = String(get(['options','option']) || '').trim();
+      const comment = String(get(['comment']) || '').trim();
       lines.push(pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)));
       if (opts) lines.push('  ' + opts);
+      if (comment) lines.push('  NOTE: ' + comment);
     }
   }
   lines.push('--------------------------------');
@@ -535,10 +537,12 @@ function buildReceipt(order) {
   const dis = parseFloat(order.discount) || 0;
   const tax = parseFloat(order.tax) || 0;
   const tot = parseFloat(order.total) || 0;
+  const tip = parseFloat(order.tip) || 0;
   lines.push(pad('Subtotal:', '$' + sub.toFixed(2)));
   if (fee > 0) lines.push(pad('Delivery Fee:', '$' + fee.toFixed(2)));
   if (dis > 0) lines.push(pad('Promo:', '-$' + dis.toFixed(2)));
   if (tax > 0) lines.push(pad('Tax:', '$' + tax.toFixed(2)));
+  if (tip > 0) lines.push(pad('Tip:', '$' + tip.toFixed(2)));
   lines.push(pad('TOTAL:', '$' + tot.toFixed(2)));
   lines.push('--------------------------------');
   const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
