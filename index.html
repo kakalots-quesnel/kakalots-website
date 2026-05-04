@@ -1705,12 +1705,12 @@ function OrderPage() {
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#555', marginBottom: '4px' }}>
                 <span>Tax ({settings['tax_rate'] || '12'}%)</span><span>${taxAmount.toFixed(2)}</span>
+              </div>
               {tip > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#C8960C', marginBottom: '4px', fontWeight: '600' }}>
                   <span>Tip</span><span>${tip.toFixed(2)}</span>
                 </div>
               )}
-              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', borderTop: '1px solid #f0d0d0', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total</span><span style={{ color: '#da0908' }}>${grandTotal.toFixed(2)}</span>
               </div>
