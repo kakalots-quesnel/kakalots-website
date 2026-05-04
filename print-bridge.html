@@ -504,6 +504,8 @@ function buildReceipt(order) {
   lines.push('ORDER #' + String(order.order_number || ''));
   lines.push(date + '  ' + time);
   lines.push(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **');
+  const sched = order.scheduled_time || 'ASAP';
+  lines.push(sched === 'ASAP' ? 'TIME: AS SOON AS POSSIBLE' : 'SCHEDULED: ' + sched);
   lines.push('--------------------------------');
   lines.push('CUSTOMER:');
   lines.push(String(order.customer_name || ''));
