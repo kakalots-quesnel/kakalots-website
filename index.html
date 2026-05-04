@@ -1063,7 +1063,8 @@ function OrderPage() {
   const [itemComment, setItemComment] = useState('');
   const [tip, setTip] = useState(0);
   const [tipInput, setTipInput] = useState('');
-  const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', postal: '', instructions: '', payment_method: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' });
+  const [instructions, setInstructions] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderNum, setOrderNum] = useState(null);
   const [zoneError, setZoneError] = useState('');
@@ -1208,14 +1209,14 @@ function OrderPage() {
       delivery_address: orderType === 'delivery' ? form.address : null,
       delivery_postal_code: orderType === 'delivery' ? form.postal : null,
       delivery_zone_id: form.zoneId || null,
-      items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, options: i.options })),
+      items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, options: i.options, comment: i.comment || '' })),
       subtotal: cartTotal,
       delivery_fee: parseFloat(deliveryFee),
       discount: discountAmount,
       promo_code: appliedPromo?.code || null,
       tax: taxAmount,
       total: grandTotal,
-      special_instructions: form.instructions,
+      special_instructions: instructions,
       payment_method: orderType === 'delivery' ? (form.payment_method || 'cash') : 'in_store',
       tip: tip,
       status: 'pending'
@@ -1283,7 +1284,7 @@ function OrderPage() {
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
         <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
-        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', instructions: '', payment_method: '' }); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); setTip(0); setTipInput(''); }}>Place Another Order</button>
+        <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' }); setInstructions(''); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); setTip(0); setTipInput(''); }}>Place Another Order</button>
       </div>
     </>
   );
@@ -1654,8 +1655,8 @@ function OrderPage() {
             </div>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', color: '#333' }}>Special Instructions (optional)</label>
-              <textarea placeholder="Allergies, special requests, delivery notes..." value={form.instructions}
-                onChange={e => setForm(p => ({ ...p, instructions: e.target.value }))}
+              <textarea placeholder="Allergies, special requests, delivery notes..." value={instructions}
+                onChange={e => setInstructions(e.target.value)}
                 rows="3"
                 style={{ width: '100%', padding: '11px 14px', border: '1px solid #ddd', borderRadius: '3px', fontFamily: 'Lato, sans-serif', fontSize: '0.95rem', resize: 'vertical', outline: 'none' }} />
             </div>
@@ -1714,10 +1715,10 @@ function OrderPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', borderTop: '1px solid #f0d0d0', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total</span><span style={{ color: '#da0908' }}>${grandTotal.toFixed(2)}</span>
               </div>
-              {form.instructions && form.instructions.trim() && (
+              {instructions && instructions.trim() && (
                 <div style={{ marginTop: '12px', padding: '10px 12px', background: '#fff8e1', border: '1px solid #C8960C', borderRadius: '3px', fontSize: '0.82rem', color: '#555' }}>
                   <div style={{ fontWeight: '700', color: '#C8960C', marginBottom: '4px' }}>📝 Special Instructions:</div>
-                  <div>{form.instructions}</div>
+                  <div>{instructions}</div>
                 </div>
               )}
             </div>
