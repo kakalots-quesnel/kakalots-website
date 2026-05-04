@@ -1714,6 +1714,12 @@ function OrderPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', borderTop: '1px solid #f0d0d0', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total</span><span style={{ color: '#da0908' }}>${grandTotal.toFixed(2)}</span>
               </div>
+              {form.instructions && form.instructions.trim() && (
+                <div style={{ marginTop: '12px', padding: '10px 12px', background: '#fff8e1', border: '1px solid #C8960C', borderRadius: '3px', fontSize: '0.82rem', color: '#555' }}>
+                  <div style={{ fontWeight: '700', color: '#C8960C', marginBottom: '4px' }}>📝 Special Instructions:</div>
+                  <div>{form.instructions}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
