@@ -218,7 +218,7 @@
 
     /* ── HERO (full-bleed photo) ── */
     .hero {
-      position: relative; min-height: 92vh;
+      position: relative; height: 100vh; min-height: 600px;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       overflow: hidden;
@@ -236,30 +236,30 @@
       position: absolute; inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(10,4,2,0.38) 0%,
-        rgba(10,4,2,0.22) 30%,
-        rgba(10,4,2,0.55) 72%,
-        rgba(10,4,2,0.88) 100%
+        rgba(0,0,0,0.30) 0%,
+        rgba(0,0,0,0.15) 35%,
+        rgba(0,0,0,0.45) 68%,
+        rgba(0,0,0,0.82) 100%
       );
     }
     .hero-content {
       position: relative; z-index: 2;
       text-align: center;
-      padding: 0 24px 180px;
-      max-width: 780px; margin: 0 auto;
+      padding: 0 24px 200px;
+      max-width: 820px; margin: 0 auto;
       display: flex; flex-direction: column; align-items: center;
     }
-    .hero-logo-wrap { margin-bottom: 20px; }
+    .hero-logo-wrap { margin-bottom: 18px; }
     .hero-logo-wrap img {
-      max-width: 360px; width: 100%;
-      drop-shadow(0 4px 24px rgba(0,0,0,0.6));
+      max-width: 400px; width: 90%;
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7));
     }
     .hero-tagline-photo {
       font-family: 'Dancing Script', cursive;
-      font-size: clamp(1.4rem, 3.5vw, 2.2rem);
-      color: rgba(255,255,255,0.9); font-weight: 700;
-      margin-bottom: 10px;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+      font-size: clamp(1.5rem, 3.8vw, 2.4rem);
+      color: rgba(255,255,255,0.95); font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
     }
     .hero-tagline-shimmer {
       background: linear-gradient(90deg, #fff 40%, #C8960C 50%, #fff 60%);
@@ -268,44 +268,65 @@
       background-clip: text; animation: shimmer 4s linear infinite;
     }
     .hero-specials-photo {
-      display: flex; gap: 16px; justify-content: center;
-      flex-wrap: wrap; margin: 20px 0 24px;
+      display: flex; gap: 14px; justify-content: center;
+      flex-wrap: wrap; margin: 0 0 22px;
     }
     .hero-special-box-photo {
-      background: rgba(0,0,0,0.52);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(200,150,12,0.6);
-      padding: 12px 22px; text-align: center; border-radius: 3px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(200,150,12,0.55);
+      padding: 10px 22px; text-align: center; border-radius: 3px;
+    }
+    .hero-phones {
+      display: flex; gap: 20px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 0;
+    }
+    .hero-phone-link {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      text-decoration: none;
+    }
+    .hero-phone-label {
+      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--gold); font-weight: 700;
+    }
+    .hero-phone-number {
+      font-size: 0.95rem; font-weight: 700; color: #fff;
+      letter-spacing: 0.04em;
     }
     .hero-action-overlay {
       position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
-      background: linear-gradient(to top, rgba(10,4,2,0.92) 0%, transparent 100%);
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%);
       display: flex;
     }
     .hero-action-btn {
-      flex: 1; padding: 26px 20px;
+      flex: 1; padding: 28px 20px;
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 6px;
+      justify-content: center; gap: 4px;
       cursor: pointer; border: none; background: none;
       transition: background 0.2s; font-family: 'Lato', sans-serif;
       position: relative;
     }
     .hero-action-btn:not(:last-child)::after {
-      content: ''; position: absolute; right: 0; top: 25%; bottom: 25%;
-      width: 1px; background: rgba(200,150,12,0.35);
+      content: ''; position: absolute; right: 0; top: 22%; bottom: 22%;
+      width: 1px; background: rgba(200,150,12,0.4);
     }
-    .hero-action-btn:hover { background: rgba(218,9,8,0.22); }
-    .hero-action-btn .btn-icon { font-size: 1.8rem; }
+    .hero-action-btn:hover { background: rgba(218,9,8,0.28); }
     .hero-action-btn .btn-label {
-      font-weight: 900; font-size: 1.05rem; color: #fff;
-      letter-spacing: 0.1em; text-transform: uppercase;
+      font-weight: 900; font-size: 1.1rem; color: #fff;
+      letter-spacing: 0.12em; text-transform: uppercase;
       text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
     .hero-action-btn .btn-sub {
-      font-size: 0.73rem; color: rgba(255,255,255,0.65);
+      font-size: 0.72rem; color: rgba(255,255,255,0.6);
       letter-spacing: 0.05em; text-transform: uppercase;
     }
     .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    @media (max-width: 600px) {
+      .hero { height: 100svh; }
+      .hero-content { padding-bottom: 180px; }
+      .hero-logo-wrap img { max-width: 280px; }
+      .hero-action-btn { padding: 22px 12px; }
+      .hero-action-btn .btn-label { font-size: 0.95rem; }
+    }
 
     /* ── BUTTONS ── */
     .btn-primary {
@@ -931,25 +952,29 @@ function HomePage({ setPage }) {
           <div className="hero-specials-photo">
             <div className="hero-special-box-photo">
               <p className="special-title" style={{color:'var(--gold)'}}>Weekend Smorgasbord</p>
-              <p className="special-detail">Friday &amp; Saturday · 4:30 – 7:00 pm</p>
+              <p className="special-detail" style={{color:'rgba(255,255,255,0.85)'}}>Friday &amp; Saturday · 4:30 – 7:00 pm</p>
             </div>
           </div>
-          <div style={{display:'flex',gap:'16px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href="tel:7784144567" style={{color:'rgba(255,255,255,0.7)',fontSize:'0.82rem',textDecoration:'none'}}>778-414-4567</a>
-            <span style={{color:'rgba(255,255,255,0.3)'}}>|</span>
-            <a href="tel:7784146789" style={{color:'rgba(255,255,255,0.7)',fontSize:'0.82rem',textDecoration:'none'}}>778-414-6789</a>
+          <div className="hero-phones">
+            <a href="tel:7784144567" className="hero-phone-link">
+              <span className="hero-phone-label">Click to Call</span>
+              <span className="hero-phone-number">778-414-4567</span>
+            </a>
+            <span style={{color:'rgba(200,150,12,0.5)',alignSelf:'center',fontSize:'1.2rem'}}>·</span>
+            <a href="tel:7784146789" className="hero-phone-link">
+              <span className="hero-phone-label">Click to Call</span>
+              <span className="hero-phone-number">778-414-6789</span>
+            </a>
           </div>
         </div>
         <div className="hero-action-overlay">
           <button className="hero-action-btn" onClick={()=>{setPage('order');window.scrollTo(0,0);}}>
-            <span className="btn-icon">&#x1F961;</span>
             <span className="btn-label">Pickup</span>
-            <span className="btn-sub">Order online</span>
+            <span className="btn-sub">Order online — ready in ~20 min</span>
           </button>
           <button className="hero-action-btn" onClick={()=>{setPage('order');window.scrollTo(0,0);}}>
-            <span className="btn-icon">&#x1F6F5;</span>
             <span className="btn-label">Delivery</span>
-            <span className="btn-sub">To your door</span>
+            <span className="btn-sub">Hot food to your door</span>
           </button>
         </div>
       </section>
