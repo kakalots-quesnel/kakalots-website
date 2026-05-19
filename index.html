@@ -70,35 +70,128 @@
       100% { box-shadow: 0 0 0 0 rgba(218,9,8,0); }
     }
 
-    .hero-sparkles {
-      position: absolute; inset: 0;
-      pointer-events: none; z-index: 0;
-    }
-    .sparkle {
-      position: absolute; bottom: -20px; opacity: 0;
-      animation: floatUp linear infinite;
-      font-size: 28px; line-height: 1;
-      user-select: none; pointer-events: none;
-    }
-    .sparkle.sm { font-size: 18px; }
-    .sparkle.lg { font-size: 40px; }
-    .sparkle.xl { font-size: 52px; }
-    .hero { position: relative; }
-    .hero > *:not(.hero-sparkles) { position: relative; z-index: 1; }
-    .hero-title-shimmer {
-      background: linear-gradient(90deg, #1a1a1a 40%, #C8960C 50%, #1a1a1a 60%);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 4s linear infinite;
-    }
     .page-fade { animation: pageFadeIn 0.3s ease forwards; }
     .section-animate {
       opacity: 0; transform: translateY(24px);
       transition: opacity 0.65s ease, transform 0.65s ease;
     }
     .section-animate.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── HERO (full-bleed photo) ── */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden; cursor: default;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: url('https://i.ibb.co/v4mGFWnZ/Image-20260513032713-102-1.jpg') center center / cover no-repeat;
+      transform: scale(1.04);
+      transition: transform 8s ease;
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,4,2,0.38) 0%,
+        rgba(10,4,2,0.22) 30%,
+        rgba(10,4,2,0.55) 72%,
+        rgba(10,4,2,0.88) 100%
+      );
+    }
+    .hero:hover .hero-bg { transform: scale(1.0); }
+    .hero-content {
+      position: relative; z-index: 2;
+      text-align: center;
+      padding: 0 24px 180px;
+      max-width: 780px; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .hero-logo-wrap {
+      margin-bottom: 20px;
+    }
+    .hero-logo-wrap img {
+      max-width: 360px; width: 100%;
+      filter: brightness(0) invert(1) drop-shadow(0 4px 24px rgba(0,0,0,0.6));
+    }
+    .hero-tagline-photo {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+      color: rgba(255,255,255,0.9);
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+      letter-spacing: 0.02em;
+    }
+    .hero-tagline-shimmer {
+      background: linear-gradient(90deg, #fff 40%, #C8960C 50%, #fff 60%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s linear infinite;
+    }
+    .hero-specials-photo {
+      display: flex; gap: 16px;
+      justify-content: center; flex-wrap: wrap;
+      margin: 24px 0 36px;
+    }
+    .hero-special-box-photo {
+      background: rgba(0,0,0,0.52);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(200,150,12,0.6);
+      padding: 12px 22px; text-align: center;
+      border-radius: 3px;
+    }
+    .hero-special-box-photo .special-title {
+      color: var(--gold); font-size: 0.78rem; letter-spacing: 0.1em;
+    }
+    .hero-special-box-photo .special-detail {
+      color: rgba(255,255,255,0.85); font-size: 0.82rem; margin-top: 2px;
+    }
+    /* Hero CTA overlay buttons */
+    .hero-action-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+      background: linear-gradient(to top, rgba(10,4,2,0.92) 0%, rgba(10,4,2,0.0) 100%);
+      display: flex; gap: 0;
+      cursor: default;
+    }
+    .hero-action-btn {
+      flex: 1; padding: 26px 20px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      text-decoration: none; cursor: pointer; border: none; background: none;
+      transition: background 0.2s;
+      font-family: 'Lato', sans-serif;
+      position: relative;
+    }
+    .hero-action-btn:not(:last-child)::after {
+      content: ''; position: absolute; right: 0; top: 25%; bottom: 25%;
+      width: 1px; background: rgba(200,150,12,0.35);
+    }
+    .hero-action-btn:hover { background: rgba(218,9,8,0.22); }
+    .hero-action-btn .btn-icon {
+      font-size: 1.8rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    }
+    .hero-action-btn .btn-label {
+      font-weight: 900; font-size: 1.05rem; color: #fff;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .hero-action-btn .btn-sub {
+      font-size: 0.73rem; color: rgba(255,255,255,0.65);
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    @media (max-width: 600px) {
+      .hero { min-height: 85vh; }
+      .hero-content { padding-bottom: 160px; }
+      .hero-action-btn { padding: 20px 12px; }
+      .hero-action-btn .btn-label { font-size: 0.9rem; }
+      .hero-action-btn .btn-icon { font-size: 1.4rem; }
+    }
 
     /* ── GREEK KEY BORDER ── */
     .greek-border {
@@ -216,88 +309,10 @@
     /* ── LANTERN ── */
     .lantern-svg { width: auto; height: auto; }
 
-    /* ── HERO ── */
-    .hero {
-      background: #fff; padding: 52px 24px 44px;
-      text-align: center; position: relative; overflow: hidden;
-    }
-    .hero-top-row {
-      display: flex; align-items: flex-start;
-      justify-content: center; gap: 28px; margin-bottom: 16px;
-    }
-    .hero-center { flex: 1; max-width: 600px; }
-    .hero-welcome {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem; font-weight: 400;
-      color: var(--text-muted); letter-spacing: 0.1em;
-      margin-bottom: 6px; text-transform: uppercase;
-    }
-    .hero-title {
-      font-family: 'Playfair Display', serif;
-      font-weight: 900;
-      font-size: clamp(2.6rem, 7.5vw, 5rem);
-      color: var(--text); line-height: 0.95;
-      letter-spacing: 0.02em; margin-bottom: 4px;
-    }
-    .hero-restaurant {
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      font-size: clamp(0.9rem, 2.5vw, 1.4rem);
-      color: var(--text); letter-spacing: 0.24em;
-      text-transform: uppercase; margin-bottom: 16px;
-    }
-    .hero-chinese {
-      font-family: 'Noto Serif SC', serif;
-      font-size: clamp(1.4rem, 4.5vw, 2.6rem);
-      color: var(--red); font-weight: 700;
-      margin-bottom: 6px; letter-spacing: 0.1em;
-    }
-    .hero-tagline {
-      font-family: 'Dancing Script', cursive;
-      font-size: clamp(1.3rem, 3.5vw, 2.1rem);
-      color: var(--red); font-weight: 900; margin-bottom: 24px;
-    }
-    .hero-panels-row {
-      display: flex; align-items: center;
-      justify-content: center;
-      gap: clamp(8px, 2vw, 20px);
-      margin: 0 auto 32px; max-width: 860px;
-      width: 100%; padding: 0 16px;
-    }
-    .hero-side-banner {
-      flex: 0 0 auto;
-      height: clamp(160px, 28vw, 320px);
-      width: auto; object-fit: contain; display: block;
-    }
-    .hero-center-image {
-      width: min(420px, 90vw);
-      aspect-ratio: 1 / 1;
-      border: 3px solid var(--red);
-      background: var(--cream); display: flex;
-      align-items: center; justify-content: center;
-      overflow: hidden; border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-    }
-    .hero-image-placeholder {
-      width: 100%; height: 100%; display: flex;
-      flex-direction: column; align-items: center;
-      justify-content: center;
-      background: repeating-linear-gradient(45deg,
-        #f9f0f0, #f9f0f0 8px, #f3e0e0 8px, #f3e0e0 16px);
-      color: var(--red); font-size: 0.7rem;
-      font-family: monospace; text-align: center;
-      padding: 12px; gap: 6px;
-    }
-    .hero-image-placeholder svg { opacity: 0.4; }
-    .hero-specials {
-      display: flex; gap: 12px; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 32px;
-    }
-    .hero-special-box {
-      border: 1px solid var(--gold);
-      padding: 10px 20px; text-align: center;
-      background: #fff; border-radius: var(--radius);
-      box-shadow: 0 2px 8px rgba(200,150,12,0.1);
+    /* legacy .hero-ctas kept for safety */
+    .hero-ctas {
+      display: flex; gap: 12px;
+      justify-content: center; flex-wrap: wrap;
     }
     .special-title {
       font-family: 'Lato', sans-serif; font-weight: 700;
@@ -305,10 +320,6 @@
       letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px;
     }
     .special-detail { font-family: 'Lato', sans-serif; font-size: 0.8rem; color: var(--text-muted); }
-    .hero-ctas {
-      display: flex; gap: 12px;
-      justify-content: center; flex-wrap: wrap;
-    }
 
     /* ── BUTTONS ── */
     .btn-primary {
@@ -572,16 +583,7 @@
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .hamburger { display: flex; }
-      .hero { padding: 40px 16px 36px; }
-      .hero-top-row { flex-direction: column; align-items: center; }
-      .hero-panels-row { max-width: 100%; gap: 6px; margin-bottom: 20px; }
-      .hero-side-banner { height: clamp(90px, 20vw, 160px); }
-      .hero-center-image { max-width: none; }
-      .hero-specials { flex-direction: column; align-items: center; gap: 8px; }
-      .hero-ctas { flex-direction: column; align-items: center; }
-      .hero-ctas .btn-primary, .hero-ctas .btn-secondary, .hero-ctas .btn-gold {
-        width: 100%; max-width: 320px; justify-content: center;
-      }
+      .hero-specials-photo { flex-direction: column; align-items: center; gap: 8px; }
       .section { padding: 52px 16px; }
       .about-grid, .hours-order-grid, .contact-grid { grid-template-columns: 1fr; gap: 32px; }
       .about-image-stack { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
@@ -909,42 +911,38 @@ function HomePage({ setPage }) {
 
   return (
     <>
-      {/* HERO */}
+      {/* HERO — full-bleed food photo */}
       <section className="hero" aria-label="Welcome to Kakalots Restaurant">
-        <HeroSparkles />
-        <div className="hero-top-row">
-          <div className="hero-center">
-            <p className="hero-welcome">Welcome To</p>
-            <img
-              src="https://i.ibb.co/7J0Lvt1T/logo.png"
-              alt="Kakalots Restaurant 家家樂酒家"
-              style={{ maxWidth: '480px', width: '100%', display: 'block', margin: '0 auto 14px' }} />
-            
-            <p className="hero-tagline" style={{ lineHeight: "1", fontFamily: '"Dancing Script"' }}><span className="hero-title-shimmer">Happy, Happy Family!</span></p>
+        <div className="hero-bg" aria-hidden="true"></div>
+        <div className="hero-content">
+          <div className="hero-logo-wrap">
+            <img src="https://i.ibb.co/7J0Lvt1T/logo.png" alt="Kakalots Restaurant 家家樂酒家" />
+          </div>
+          <p className="hero-tagline-photo"><span className="hero-tagline-shimmer">Happy, Happy Family!</span></p>
+          <div className="hero-specials-photo" role="list" aria-label="Weekly specials">
+            <div className="hero-special-box-photo" role="listitem">
+              <p className="special-title" style={{ color: 'var(--gold)' }}>Weekend Smorgasbord</p>
+              <p className="special-detail">Friday &amp; Saturday · 4:30 – 7:00 pm</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
+            <a href="tel:7784144567" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', letterSpacing: '0.06em', textDecoration: 'none' }}>📞 778-414-4567</a>
+            <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
+            <a href="tel:7784146789" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', letterSpacing: '0.06em', textDecoration: 'none' }}>📞 778-414-6789</a>
           </div>
         </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}>
-          <div className="hero-center-image" role="img" aria-label="Kakalots Restaurant">
-            <img src="https://i.ibb.co/fGXgLX26/2.png" alt="Kakalots Restaurant" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
-        </div>
-
-        <div className="hero-specials" role="list" aria-label="Weekly specials">
-          <div className="hero-special-box" role="listitem">
-            <p className="special-title">Weekend Smorgasbord</p>
-            <p className="special-detail">Every Friday, Saturday & Sunday<br />5:00 – 8:00 pm</p>
-          </div>
-          <div className="hero-special-box" role="listitem" style={{ width: "243.828px" }}>
-            <p className="special-title">CHEF'S LUNCH SPECIALS </p>
-            <p className="special-detail">Everyday 12-2 pm</p>
-          </div>
-        </div>
-
-        <div className="hero-ctas">
-          <a href="#" className="btn-primary" onClick={(e) => {e.preventDefault();setPage('order');window.scrollTo(0, 0);}}>Order Online</a>
-          <a href="tel:7784146789" className="btn-secondary">Call: 778-414-6789</a>
-          <a href="#" className="btn-gold" onClick={(e) => {e.preventDefault();setPage('contact');window.scrollTo(0, 0);}}>Make a Reservation</a>
+        {/* Bottom CTA strip — pickup or delivery */}
+        <div className="hero-action-overlay">
+          <button className="hero-action-btn" onClick={() => {setPage('order');window.scrollTo(0,0);}} aria-label="Order for pickup">
+            <span className="btn-icon">🥡</span>
+            <span className="btn-label">Pickup</span>
+            <span className="btn-sub">Order online · ready in ~20 min</span>
+          </button>
+          <button className="hero-action-btn" onClick={() => {setPage('order');window.scrollTo(0,0);}} aria-label="Order for delivery">
+            <span className="btn-icon">🛵</span>
+            <span className="btn-label">Delivery</span>
+            <span className="btn-sub">Hot food to your door</span>
+          </button>
         </div>
       </section>
 
@@ -957,7 +955,7 @@ function HomePage({ setPage }) {
           { icon: <Icons.Delivery />, title: 'Delivery', desc: 'Hot food delivered to your door in Quesnel' },
           { icon: <Icons.DineIn />, title: 'Dine-In', desc: 'Enjoy your meal in our welcoming dining room' },
           { icon: <Icons.Catering />, title: 'Catering', desc: 'Off-site catering for groups up to 500+' },
-          { icon: <Icons.Smorgasbord />, title: 'Weekend Smorg', desc: 'All-you-can-eat every Fri, Sat & Sun evening' }].
+          { icon: <Icons.Smorgasbord />, title: 'Weekend Smorg', desc: 'All-you-can-eat every Fri & Sat evening' }].
           map((f, i) =>
           <div className="feature-item" key={i}>
               <span className="feature-icon" aria-hidden="true" style={{ display: 'flex', justifyContent: 'center' }}>{f.icon}</span>
@@ -966,7 +964,7 @@ function HomePage({ setPage }) {
             </div>
           )}
         </div>
-      </div>
+      </div>      </div>
 
       {/* ABOUT SNIPPET */}
       <div className="lattice-divider" aria-hidden="true"></div>
@@ -1029,7 +1027,7 @@ function HomePage({ setPage }) {
               <p>Skip the third-party app fees. Order online and pay at pickup or to your delivery driver. <strong>Cash or card accepted.</strong></p>
               <p className="menu-cta">🍜 Browse our full menu of 120+ dishes — click Order Online to get started</p>
               <a href="#" className="btn-gold" onClick={(e) => {e.preventDefault();setPage('order');window.scrollTo(0,0);}} style={{ display: 'block', width: '100%', textAlign: 'center', marginBottom: '10px' }}>Order Online Now</a>
-              <a href="tel:7784146789" className="btn-outline-white">Call to Order: 778-414-6789</a>
+              <a href="tel:7784144567" className="btn-outline-white">📞 778-414-4567 / 778-414-6789</a>
             </div>
           </div>
         </div>
@@ -1220,7 +1218,7 @@ function OrderPage() {
       return true;
     } else {
       setForm(f => ({ ...f, zoneId: null }));
-      setZoneError('Sorry, we don\'t deliver to that postal code. Please call us at 778-414-6789.');
+      setZoneError('Sorry, we don\'t deliver to that postal code. Please call us at 778-414-4567 or 778-414-6789.');
       return false;
     }
   }
@@ -1267,44 +1265,46 @@ function OrderPage() {
 
   const currentCat = categories.find(c => c.id === selectedCat);
 
-  // ── CLOSED STATE ──
-  if (!isOpen) return (
+  // ── CLOSED STATE — show menu but flag as preorder ──
+  const [preorderMode, setPreorderMode] = React.useState(false);
+  if (!isOpen && !preorderMode) return (
     <>
       <div className="page-banner"><h1>Order Online</h1><p className="chinese">網上訂餐</p></div>
       <GreekBorder />
-      <div style={{ textAlign: 'center', padding: '80px 24px', maxWidth: '560px', margin: '0 auto' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{withinHours ? '📞' : '🕐'}</div>
+      <div style={{ textAlign: 'center', padding: '52px 24px 32px', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🕐</div>
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.8rem', marginBottom: '12px', color: '#da0908' }}>
-          {withinHours ? 'Online Ordering Paused' : 'We\'re Currently Closed'}
+          We're Currently Closed
         </h2>
-        {withinHours ? (
-          <>
-            <p style={{ color: '#555', marginBottom: '16px', lineHeight: '1.7' }}>
-              Online ordering is temporarily unavailable right now, but we're open! Please call us to place your order directly.
-            </p>
-            <a href="tel:7784146789" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none', marginBottom: '16px' }}>
-              📞 Call to Order: 778-414-6789
-            </a>
-          </>
-        ) : (
-          <>
-            <p style={{ color: '#555', marginBottom: '16px', lineHeight: '1.7' }}>
-              We're not open right now. Check our hours below and come back when we're open!
-            </p>
-            <div style={{ background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '20px', borderRadius: '3px', marginBottom: '20px', textAlign: 'left', maxWidth: '320px', margin: '0 auto 20px' }}>
-              <p style={{ fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px', color: '#da0908' }}>Hours of Operation</p>
-              {[['Mon', '12:00pm – 8:30pm'], ['Tue', 'Closed'], ['Wed–Fri', '12:00pm – 8:30pm'], ['Sat–Sun', '3:00pm – 8:30pm']].map(([d, h]) => (
-                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', padding: '4px 0', borderBottom: '1px solid #f9f0f0', color: h === 'Closed' ? '#aaa' : '#333' }}>
-                  <span>{d}</span><span>{h}</span>
-                </div>
-              ))}
+        <p style={{ color: '#555', marginBottom: '20px', lineHeight: '1.7' }}>
+          We're not open right now, but you can still browse our menu and place a preorder for when we open!
+        </p>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '28px' }}>
+          <button className="btn-primary" onClick={() => setPreorderMode(true)} style={{ cursor: 'pointer' }}>
+            📋 Browse Menu & Preorder
+          </button>
+          <a href="tel:7784144567" className="btn-secondary" style={{ textDecoration: 'none' }}>📞 Call Us</a>
+        </div>
+        <div style={{ background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '20px', borderRadius: '3px', textAlign: 'left', maxWidth: '320px', margin: '0 auto 16px' }}>
+          <p style={{ fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px', color: '#da0908' }}>Hours of Operation</p>
+          {[['Mon', '12:00pm – 8:30pm'], ['Tue', 'Closed'], ['Wed–Fri', '12:00pm – 8:30pm'], ['Sat–Sun', '3:00pm – 8:30pm']].map(([d, h]) => (
+            <div key={d} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', padding: '4px 0', borderBottom: '1px solid #f9f0f0', color: h === 'Closed' ? '#aaa' : '#333' }}>
+              <span>{d}</span><span>{h}</span>
             </div>
-            <a href="tel:7784146789" style={{ color: '#da0908', fontSize: '0.9rem', textDecoration: 'none' }}>Questions? Call 778-414-6789</a>
-          </>
-        )}
+          ))}
+        </div>
+        <p style={{ fontSize: '0.8rem', color: '#aaa' }}>778-414-4567 · 778-414-6789</p>
       </div>
     </>
   );
+
+  // When preorderMode is on and restaurant is closed, override withinHours to allow ordering
+  const effectivelyOpen = isOpen || preorderMode;
+  const preorderBanner = (!isOpen && preorderMode) ? (
+    <div style={{ background: '#fff8e6', border: '1px solid #C8960C', borderRadius: '3px', padding: '12px 20px', margin: '0 0 16px', textAlign: 'center', fontSize: '0.88rem', color: '#7a5c00' }}>
+      🕐 <strong>Preorder Mode</strong> — We're currently closed. Your order will be prepared when we open next.
+    </div>
+  ) : null;
 
   // ── ORDER CONFIRM ──
   if (step === 'confirm') return (
@@ -1318,7 +1318,7 @@ function OrderPage() {
         <p style={{ color: '#555', lineHeight: '1.8', marginBottom: '32px' }}>
           Your order has been received and is being prepared. {orderType === 'pickup' ? 'Please pick up at 496 Anderson Dr.' : 'Your delivery is on its way!'} Payment ({orderType === 'pickup' ? 'cash or card' : 'to your driver'}) is due at {orderType === 'pickup' ? 'pickup' : 'delivery'}.
         </p>
-        <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call us at <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
+        <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>Questions? Call <a href="tel:7784144567" style={{ color: '#da0908' }}>778-414-4567</a> or <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a></p>
         <button className="btn-primary" onClick={() => { setStep('type'); setCart([]); setForm({ name: '', phone: '', email: '', address: '', postal: '', payment_method: '' }); setInstructions(''); setScheduledTime('ASAP'); setAppliedPromo(null); setPromoInput(''); setPromoError(''); setPromoSuccess(''); setTip(0); setTipInput(''); }}>Place Another Order</button>
       </div>
     </>
@@ -1331,6 +1331,7 @@ function OrderPage() {
       <GreekBorder />
       <section className="section">
         <div className="section-inner">
+          {preorderBanner}
           <p style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 44px', fontSize: '1.05rem', color: '#555', lineHeight: '1.8' }}>
             Order directly from Kakalots — no third-party fees. Payment is made directly to us at pickup or to your delivery driver. <strong>Cash or card accepted.</strong>
           </p>
@@ -1359,7 +1360,7 @@ function OrderPage() {
           )}
           <div style={{ textAlign: 'center', marginTop: '32px' }}>
             <p style={{ marginBottom: '12px', color: '#888', fontSize: '0.9rem' }}>Prefer to call in your order?</p>
-            <a href="tel:7784146789" className="btn-secondary">778-414-6789</a>
+            <a href="tel:7784144567" className="btn-secondary">778-414-4567 / 778-414-6789</a>
           </div>
         </div>
       </section>
@@ -1888,7 +1889,7 @@ function ContactPage({ setPage }) {
       status: 'pending'
     });
     setResvSubmitting(false);
-    if (error) { alert('Error submitting reservation. Please call us at 778-414-6789.'); return; }
+    if (error) { alert('Error submitting reservation. Please call us at 778-414-4567 or 778-414-6789.'); return; }
     setResvSent(true);
   }
 
@@ -1908,7 +1909,7 @@ function ContactPage({ setPage }) {
               <a href="https://maps.google.com/?q=496+Anderson+Dr,+Quesnel,+BC+V2J+1G2" target="_blank" rel="noopener noreferrer" style={{ color: '#da0908', fontWeight: '700', fontSize: '0.85rem' }}>Get Directions →</a>
 
               <h3>Phone</h3>
-              <p><a href="tel:7784146789">778-414-6789</a></p>
+              <p><a href="tel:7784144567">778-414-4567</a><br /><a href="tel:7784146789">778-414-6789</a></p>
 
               <h3>Hours of Operation</h3>
               <table className="hours-table" aria-label="Business hours">
@@ -1950,7 +1951,7 @@ function ContactPage({ setPage }) {
               {/* Reservation Form */}
               <div style={{ marginTop: '24px', background: '#fdf5f5', border: '1px solid #f0d0d0', padding: '28px' }}>
                 <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '1.1rem', color: '#da0908', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dine-In Reservation</h3>
-                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px' }}>Request a table and we'll confirm by phone. For same-day reservations please call <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a>.</p>
+                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px' }}>Request a table and we'll confirm by phone. For same-day reservations please call <a href="tel:7784144567" style={{ color: '#da0908' }}>778-414-4567</a> or <a href="tel:7784146789" style={{ color: '#da0908' }}>778-414-6789</a>.</p>
                 {resvSent ? (
                   <div style={{ textAlign: 'center', padding: '24px' }}>
                     <p style={{ fontSize: '2rem', marginBottom: '12px' }}>✦</p>
@@ -2050,7 +2051,7 @@ function TermsPage() {
           </ul>
 
           <h2>Reservations & Catering</h2>
-          <p>Dine-in reservations may be made via the online reservation system or by phone. Reservations are subject to availability. For catering inquiries, please contact us directly at 778-414-6789 or use the contact form.</p>
+          <p>Dine-in reservations may be made via the online reservation system or by phone. Reservations are subject to availability. For catering inquiries, please contact us directly at 778-414-4567 or 778-414-6789, or use the contact form.</p>
 
           <h2>Accuracy of Information</h2>
           <p>We make every effort to ensure hours, pricing, and menu information is current and accurate. However, items may be subject to availability and prices may change without notice.</p>
@@ -2082,7 +2083,7 @@ function TermsPage() {
           <p>For questions about our terms or privacy practices, contact us at:<br />
           <strong>Kakalots Restaurant</strong><br />
           496 Anderson Dr, Quesnel, BC, Canada<br />
-          Phone: 778-414-6789</p>
+          Phone: 778-414-4567 / 778-414-6789</p>
         </div>
       </section>
     </>);
@@ -2124,13 +2125,14 @@ function Footer({ setPage }) {
           <div className="footer-col">
             <h4>Contact</h4>
             <p>496 Anderson Dr<br />Quesnel, BC, Canada</p>
-            <p style={{ marginTop: '10px' }}><a href="tel:7784146789">778-414-6789</a></p>
+            <p style={{ marginTop: '10px' }}><a href="tel:7784144567">778-414-4567</a><br /><a href="tel:7784146789">778-414-6789</a></p>
           </div>
           <div className="footer-col">
             <h4>Hours</h4>
             <p>Mon, Wed–Fri<br />12:00pm – 8:30pm</p>
             <p style={{ marginTop: '8px' }}>Sat–Sun<br />3:00pm – 8:30pm</p>
-            <p style={{ marginTop: '8px', opacity: '0.5' }}>Closed Tuesdays</p>
+            <p style={{ marginTop: '8px', fontSize: '0.75rem', color: 'var(--gold)', opacity: '0.9' }}>🍽 Smorgasbord: Fri & Sat 4:30–7pm</p>
+            <p style={{ marginTop: '6px', opacity: '0.5' }}>Closed Tuesdays</p>
           </div>
         </div>
         <div className="footer-bottom">
