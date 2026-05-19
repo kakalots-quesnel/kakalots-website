@@ -225,10 +225,14 @@
     }
     .hero-bg {
       position: absolute; inset: 0; z-index: 0;
-      background: url('https://i.ibb.co/v4mGFWnZ/Image-20260513032713-102-1.jpg') center center / cover no-repeat;
+      overflow: hidden;
     }
-    .hero-bg::after {
-      content: '';
+    .hero-bg-img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
+    }
+    .hero-bg-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(
         to bottom,
@@ -248,7 +252,7 @@
     .hero-logo-wrap { margin-bottom: 20px; }
     .hero-logo-wrap img {
       max-width: 360px; width: 100%;
-      filter: brightness(0) invert(1) drop-shadow(0 4px 24px rgba(0,0,0,0.6));
+      drop-shadow(0 4px 24px rgba(0,0,0,0.6));
     }
     .hero-tagline-photo {
       font-family: 'Dancing Script', cursive;
@@ -904,10 +908,22 @@ function HomePage({ setPage }) {
     <>
       {/* HERO */}
       <section className="hero" aria-label="Welcome to Kakalots Restaurant">
-        <div className="hero-bg" aria-hidden="true"></div>
+        <div className="hero-bg" aria-hidden="true">
+          <img
+            className="hero-bg-img"
+            src="https://i.ibb.co/v4mGFWnZ/Image-20260513032713-102-1.jpg"
+            alt=""
+            referrerPolicy="no-referrer"
+          />
+          <div className="hero-bg-overlay"></div>
+        </div>
         <div className="hero-content">
           <div className="hero-logo-wrap">
-            <img src="https://i.ibb.co/7J0Lvt1T/logo.png" alt="Kakalots Restaurant" />
+            <img
+              src="https://i.ibb.co/7J0Lvt1T/logo.png"
+              alt="Kakalots Restaurant"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <p className="hero-tagline-photo">
             <span className="hero-tagline-shimmer">Happy, Happy Family!</span>
