@@ -251,6 +251,7 @@ db.auth.getSession().then(({ data: { session } }) => {
 function initBridge() {
   initAudio();
   subscribeToOrders();
+  subscribeReprint();
 }
 
 // ── AUDIO ──
@@ -441,6 +442,18 @@ async function connectPrinter() {
   }
 }
 
+// ── REPRINT LISTENER ──
+function subscribeReprint() {
+  db.channel('admin-reprint')
+    .on('broadcast', { event: 'reprint' }, async (msg) => {
+      const order = msg.payload?.order;
+      if (!order) return;
+      log(`Reprint request for order #${order.order_number}`, 'info');
+      await printOrder(order);
+    })
+    .subscribe();
+}
+
 function onPrinterDisconnected() {
   printerChar = null;
   setPrinterStatus(false);
@@ -555,6 +568,10 @@ function buildReceipt(order) {
     lines.push('--------------------------------');
   }
   if (order.estimated_time) lines.push('EST. TIME: ' + order.estimated_time + ' MIN');
+  lines.push('');
+  lines.push('');
+  lines.push('');
+  lines.push('');
   lines.push('');
   lines.push('');
   lines.push('');
