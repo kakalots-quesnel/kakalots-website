@@ -1071,6 +1071,7 @@ function OrderPage() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
+  const [preorderMode, setPreorderMode] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -1266,7 +1267,6 @@ function OrderPage() {
   const currentCat = categories.find(c => c.id === selectedCat);
 
   // ── CLOSED STATE — show menu but flag as preorder ──
-  const [preorderMode, setPreorderMode] = React.useState(false);
   if (!isOpen && !preorderMode) return (
     <>
       <div className="page-banner"><h1>Order Online</h1><p className="chinese">網上訂餐</p></div>
