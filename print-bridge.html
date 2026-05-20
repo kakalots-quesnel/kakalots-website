@@ -541,8 +541,23 @@ function buildReceipt(order) {
       const name = String(get(['name']) || 'Item');
       const opts = String(get(['options','option']) || '').trim();
       const comment = String(get(['comment']) || '').trim();
+      const desc = String(get(['description']) || '').trim();
       lines.push(pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)));
       if (opts) lines.push('  ' + opts);
+      if (desc) {
+        // Word-wrap description at 30 chars (2-char indent + 30 = 32 total)
+        const words = desc.split(' ');
+        let row = ' -';
+        for (const word of words) {
+          if (row.length + 1 + word.length > 32) {
+            lines.push(row);
+            row = '  ' + word;
+          } else {
+            row += (row === ' -' ? ' ' : ' ') + word;
+          }
+        }
+        if (row.trim()) lines.push(row);
+      }
       if (comment) lines.push('  NOTE: ' + comment);
     }
   }
