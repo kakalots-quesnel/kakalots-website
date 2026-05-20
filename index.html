@@ -1204,6 +1204,7 @@ function OrderPage({ orderInit, clearOrderInit }) {
       id: Date.now(),
       itemId: itemModal.id,
       name: itemModal.name,
+      description: itemModal.description || '',
       options: optLabel,
       comment: itemComment.trim(),
       price: parseFloat(itemModal.price) + optPrice,
@@ -1249,7 +1250,7 @@ function OrderPage({ orderInit, clearOrderInit }) {
       delivery_address: orderType === 'delivery' ? form.address : null,
       delivery_postal_code: orderType === 'delivery' ? form.postal : null,
       delivery_zone_id: form.zoneId || null,
-      items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price, options: i.options, comment: i.comment || '' })),
+      items: cart.map(i => ({ name: i.name, description: i.description || '', qty: i.qty, price: i.price, options: i.options, comment: i.comment || '' })),
       subtotal: cartTotal,
       delivery_fee: parseFloat(deliveryFee),
       discount: discountAmount,
@@ -1792,7 +1793,7 @@ function AboutPage() {
               <blockquote>"We don't just cook food — we cook for people. Every dish is made like we're feeding our own family."<br /><small style={{ fontFamily: 'Lato', fontSize: '0.85rem', color: '#888' }}>— Lili & Jimmy, Owners</small></blockquote>
               <p>The name 家家樂 — which translates to "happiness in every home" — captures exactly what Lili and Jimmy set out to create. Every recipe is refined over years of practice and prepared with the freshest ingredients available.</p>
               <p>Beyond the dining room, Kakalots has become a trusted name for catering and hosting events. Lili and Jimmy have catered functions for over 500 guests at a time — bringing the same precision and heart to off-site events that they bring to every plate served in-house. From community fundraisers to private celebrations, they've done it all.</p>
-              <p>The weekend dinner smorgasbord — offered every Friday and Saturday evening — has become a beloved tradition. It's an offering that keeps families coming back week after week and provides an opportunity for guest to expand their horizon of new flavours along with staple favourite dishes.</p>
+              <p>The weekend dinner smorgasbord — offered every Friday, Saturday, and Sunday evening — has become a beloved tradition. It's an offering that keeps families coming back week after week and provides an opportunity for guest to expand their horizon of new flavours along with staple favourite dishes.</p>
             </div>
             <div>
               <div className="menu-highlights" style={{ marginTop: '0' }}>
@@ -1816,7 +1817,7 @@ function AboutPage() {
               { icon: <Icons.Takeout />, title: 'Takeout', desc: 'Ready when you are — call or order online.' },
               { icon: <Icons.Delivery />, title: 'Delivery', desc: 'Fresh to your door in Quesnel.' },
               { icon: <Icons.DineIn />, title: 'Dine-In', desc: 'Family-friendly dining room open most days.' },
-              { icon: <Icons.Smorgasbord />, title: 'Weekend Smorgasbord', desc: 'All-you-can-eat Fri & Sat, 4:30–7pm.' },
+              { icon: <Icons.Smorgasbord />, title: 'Weekend Smorgasbord', desc: 'All-you-can-eat Fri, Sat & Sun, 5–8pm.' },
               { icon: <Icons.Catering />, title: 'Catering', desc: 'Off-site catering — we\'ve served 500+ at once.' }].
               map((f, i) =>
               <div key={i} style={{ textAlign: 'center', padding: '28px', border: '1px solid #f0d0d0', background: '#fff' }}>
