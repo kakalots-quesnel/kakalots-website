@@ -212,6 +212,225 @@ let printCount = 0;
 let audioCtx = null;
 let orderSub = null;
 
+// ── ESC/POS COMMAND BYTES ──
+const ESC = 0x1B;
+const GS  = 0x1D;
+const LF  = 0x0A;
+
+// Bold on/off
+const BOLD_ON  = [ESC, 0x45, 0x01];
+const BOLD_OFF = [ESC, 0x45, 0x00];
+
+// Double-width + double-height (2x size)
+const SIZE_2X_ON  = [GS, 0x21, 0x11];
+// Double-width + double-height AND bold combined
+const SIZE_2X_OFF = [GS, 0x21, 0x00];
+
+// Align center / left
+const ALIGN_CENTER = [ESC, 0x61, 0x01];
+const ALIGN_LEFT   = [ESC, 0x61, 0x00];
+
+// Paper cut
+const CUT = [GS, 0x56, 0x41, 0x03];
+
+// ── HELPERS ──
+function textBytes(str) {
+  return Array.from(new TextEncoder().encode(str));
+}
+
+function line(str) {
+  return [...textBytes(str), LF];
+}
+
+function boldLine(str) {
+  return [...BOLD_ON, ...textBytes(str), ...BOLD_OFF, LF];
+}
+
+function bigBoldLine(str) {
+  return [...SIZE_2X_ON, ...BOLD_ON, ...textBytes(str), ...BOLD_OFF, ...SIZE_2X_OFF, LF];
+}
+
+function centeredBigBoldLine(str) {
+  return [...ALIGN_CENTER, ...SIZE_2X_ON, ...BOLD_ON, ...textBytes(str), ...BOLD_OFF, ...SIZE_2X_OFF, ...ALIGN_LEFT, LF];
+}
+
+function pad(left, right) {
+  left = String(left); right = String(right);
+  return left + ' '.repeat(Math.max(1, 32 - left.length - right.length)) + right;
+}
+
+function buildReceipt(order) {
+  let items = [];
+  try {
+    let raw = order.items;
+    if (typeof raw === 'string') {
+      raw = raw.replace(/[\u201C\u201D\u201E\u201F]/g, '"').replace(/\uFF0C/g, ',').replace(/\uFF1A/g, ':');
+      items = JSON.parse(raw);
+    } else if (Array.isArray(raw)) {
+      items = raw;
+    }
+  } catch(e) { items = []; }
+
+  const time = new Date(order.created_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' });
+  const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
+
+  let bytes = [];
+
+  // ── HEADER ──
+  // KAKALOTS — enlarged + bold, centered
+  bytes.push(...centeredBigBoldLine('KAKALOTS'));
+
+  // Address, phone, website — normal, centered
+  bytes.push(...ALIGN_CENTER);
+  bytes.push(...line('496 Anderson Dr, Quesnel BC'));
+  bytes.push(...line('778-414-6789'));
+  bytes.push(...boldLine('kakalots.com'));     // website bold
+  bytes.push(...ALIGN_LEFT);
+
+  bytes.push(...line('--------------------------------'));
+
+  // Order number + date/time
+  bytes.push(...line('ORDER #' + String(order.order_number || '')));
+  bytes.push(...line(date + '  ' + time));
+
+  // DELIVERY / PICKUP — enlarged + bold, centered
+  const orderTypeLabel = order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **';
+  bytes.push(...centeredBigBoldLine(orderTypeLabel));
+
+  const sched = order.scheduled_time || 'ASAP';
+  bytes.push(...line(sched === 'ASAP' ? 'TIME: AS SOON AS POSSIBLE' : 'SCHEDULED: ' + sched));
+  bytes.push(...line('--------------------------------'));
+
+  // Customer info
+  bytes.push(...line('CUSTOMER:'));
+  bytes.push(...line(String(order.customer_name || '')));
+  bytes.push(...line(String(order.customer_phone || '')));
+  if (order.order_type === 'delivery' && order.delivery_address) {
+    bytes.push(...line(String(order.delivery_address)));
+    if (order.delivery_postal_code) bytes.push(...line(String(order.delivery_postal_code)));
+  }
+  bytes.push(...line('--------------------------------'));
+
+  // Items
+  bytes.push(...line('ITEMS:'));
+  if (items.length === 0) {
+    bytes.push(...line('(no items)'));
+  } else {
+    for (const item of items) {
+      const keys = Object.keys(item);
+      const get = (names) => { for (const k of keys) { if (names.includes(k.toLowerCase())) return item[k]; } return null; };
+      const qty   = parseInt(get(['qty','quantity'])) || 1;
+      const price = parseFloat(String(get(['price']) || '0')) || 0;
+      const name  = String(get(['name']) || 'Item');
+      const opts  = String(get(['options','option']) || '').trim();
+      const comment = String(get(['comment']) || '').trim();
+      const desc  = String(get(['description']) || '').trim();
+
+      bytes.push(...line(pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2))));
+      if (opts) bytes.push(...line('  ' + opts));
+      if (desc) {
+        const words = desc.split(' ');
+        let row = ' -';
+        for (const word of words) {
+          if (row.length + 1 + word.length > 32) {
+            bytes.push(...line(row));
+            row = '  ' + word;
+          } else {
+            row += ' ' + word;
+          }
+        }
+        if (row.trim()) bytes.push(...line(row));
+      }
+      if (comment) bytes.push(...line('  NOTE: ' + comment));
+    }
+  }
+
+  bytes.push(...line('--------------------------------'));
+
+  // Totals
+  const sub = parseFloat(order.subtotal)      || 0;
+  const fee = parseFloat(order.delivery_fee)  || 0;
+  const dis = parseFloat(order.discount)      || 0;
+  const tax = parseFloat(order.tax)           || 0;
+  const tot = parseFloat(order.total)         || 0;
+  const tip = parseFloat(order.tip)           || 0;
+
+  bytes.push(...line(pad('Subtotal:', '$' + sub.toFixed(2))));
+  if (fee > 0) bytes.push(...line(pad('Delivery Fee:', '$' + fee.toFixed(2))));
+  if (dis > 0) bytes.push(...line(pad('Promo:', '-$' + dis.toFixed(2))));
+  if (tax > 0) bytes.push(...line(pad('Tax:', '$' + tax.toFixed(2))));
+  if (tip > 0) bytes.push(...line(pad('Tip:', '$' + tip.toFixed(2))));
+
+  // ORDER TOTAL — enlarged + bold
+  bytes.push(...bigBoldLine(pad('TOTAL:', '$' + tot.toFixed(2))));
+
+  bytes.push(...line('--------------------------------'));
+
+  // Payment
+  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
+  bytes.push(...line('PAYMENT: ' + pm));
+  bytes.push(...line('--------------------------------'));
+
+  // Special instructions
+  if (order.special_instructions && String(order.special_instructions).trim()) {
+    bytes.push(...line('NOTE: ' + String(order.special_instructions)));
+    bytes.push(...line('--------------------------------'));
+  }
+
+  // Estimated time
+  if (order.estimated_time) bytes.push(...line('EST. TIME: ' + order.estimated_time + ' MIN'));
+
+  // Thank you footer — centered
+  bytes.push(...line(''));
+  bytes.push(...ALIGN_CENTER);
+  bytes.push(...line('Thank you for your order!'));
+  bytes.push(...ALIGN_LEFT);
+
+  // Feed + cut
+  bytes.push(LF, LF, LF, LF, LF, LF);
+  bytes.push(...CUT);
+
+  return new Uint8Array(bytes);
+}
+
+async function sendToPrinter(data) {
+  const chunkSize = 200;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+    await printerChar.writeValueWithoutResponse(chunk);
+    await new Promise(r => setTimeout(r, 100));
+  }
+}
+
+async function printTest() {
+  if (!printerChar) { log('Printer not connected', 'error'); return; }
+  log('Printing test ticket...', 'info');
+  const testOrder = {
+    id: 'test',
+    order_number: 'TEST',
+    created_at: new Date().toISOString(),
+    order_type: 'delivery',
+    customer_name: 'Test Customer',
+    customer_phone: '778-555-0000',
+    delivery_address: '123 Main St',
+    delivery_postal_code: 'V2J 1A1',
+    items: [
+      {"qty": 1, "name": "BBQ Pork Chop Suey", "price": 20.5, "options": ""},
+      {"qty": 2, "name": "Chicken Fried Rice", "price": 12.95, "options": "Extra sauce"}
+    ],
+    subtotal: 46.4,
+    delivery_fee: 3,
+    discount: 0,
+    tax: 2.96,
+    total: 52.36,
+    tip: 0,
+    payment_method: 'in_store',
+    special_instructions: 'No MSG please',
+    estimated_time: 30
+  };
+  await printOrder(testOrder);
+}
+
 // ── AUTH ──
 async function login() {
   const email = document.getElementById('login-email').value.trim();
@@ -238,7 +457,6 @@ async function logout() {
   document.getElementById('app').style.display = 'none';
 }
 
-// Check existing session
 db.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     document.getElementById('login-screen').style.display = 'none';
@@ -296,7 +514,6 @@ function subscribeToOrders() {
       log(`New accepted order #${payload.new.order_number}`, 'info');
       playBeep();
       flashScreen();
-      // Fetch full order to ensure items/totals are included
       try {
         const { data, error } = await db.from('orders').select('*').eq('id', payload.new.id).single();
         if (error || !data) {
@@ -355,7 +572,6 @@ async function connectPrinter() {
     const server = await printerDevice.gatt.connect();
     log('GATT connected, finding print service...', 'info');
 
-    // Try multiple known thermal printer service UUIDs
     const serviceUUIDs = [
       '000018f0-0000-1000-8000-00805f9b34fb',
       '49535343-fe7d-4ae5-8fa9-9fafd205e455',
@@ -370,61 +586,24 @@ async function connectPrinter() {
     ];
 
     let service = null;
-    let foundServiceUUID = null;
     for (const uuid of serviceUUIDs) {
-      try {
-        service = await server.getPrimaryService(uuid);
-        foundServiceUUID = uuid;
-        log(`Found service: ${uuid.slice(0,8)}...`, 'success');
-        break;
-      } catch(e) {}
+      try { service = await server.getPrimaryService(uuid); log(`Found service: ${uuid.slice(0,8)}...`, 'success'); break; } catch(e) {}
     }
-
     if (!service) {
-      // Try getting all services
-      try {
-        const services = await server.getPrimaryServices();
-        if (services.length > 0) {
-          service = services[0];
-          foundServiceUUID = service.uuid;
-          log(`Using service: ${service.uuid.slice(0,8)}...`, 'info');
-        }
-      } catch(e) {}
+      try { const services = await server.getPrimaryServices(); if (services.length > 0) { service = services[0]; log(`Using service: ${service.uuid.slice(0,8)}...`, 'info'); } } catch(e) {}
     }
+    if (!service) { log('No print service found.', 'error'); document.getElementById('connect-btn').disabled = false; return; }
 
-    if (!service) {
-      log('No print service found. Printer may not support Web Bluetooth printing.', 'error');
-      document.getElementById('connect-btn').disabled = false;
-      return;
-    }
-
-    // Try to get write characteristic
     let char = null;
     for (const uuid of charUUIDs) {
-      try {
-        char = await service.getCharacteristic(uuid);
-        log(`Found characteristic: ${uuid.slice(0,8)}...`, 'success');
-        break;
-      } catch(e) {}
+      try { char = await service.getCharacteristic(uuid); log(`Found characteristic: ${uuid.slice(0,8)}...`, 'success'); break; } catch(e) {}
     }
-
     if (!char) {
-      try {
-        const chars = await service.getCharacteristics();
-        // Find a writable characteristic
-        char = chars.find(c => c.properties.write || c.properties.writeWithoutResponse);
-        if (char) log(`Using characteristic: ${char.uuid.slice(0,8)}...`, 'info');
-      } catch(e) {}
+      try { const chars = await service.getCharacteristics(); char = chars.find(c => c.properties.write || c.properties.writeWithoutResponse); if (char) log(`Using characteristic: ${char.uuid.slice(0,8)}...`, 'info'); } catch(e) {}
     }
-
-    if (!char) {
-      log('No writable characteristic found. Try a different printer app.', 'error');
-      document.getElementById('connect-btn').disabled = false;
-      return;
-    }
+    if (!char) { log('No writable characteristic found.', 'error'); document.getElementById('connect-btn').disabled = false; return; }
 
     printerChar = char;
-
     setPrinterStatus(true);
     document.getElementById('connect-btn').textContent = '✓ Printer Connected';
     document.getElementById('connect-btn').classList.add('connected');
@@ -472,11 +651,7 @@ function setPrinterStatus(connected) {
 
 // ── PRINT ──
 async function printOrder(order) {
-  if (!printerChar) {
-    log('Cannot print — printer not connected.', 'error');
-    return;
-  }
-
+  if (!printerChar) { log('Cannot print — printer not connected.', 'error'); return; }
   try {
     const data = buildReceipt(order);
     await sendToPrinter(data);
@@ -487,151 +662,6 @@ async function printOrder(order) {
   } catch(e) {
     log(`Print failed: ${e.message}`, 'error');
   }
-}
-
-function buildReceipt(order) {
-  let items = [];
-  try {
-    let raw = order.items;
-    if (typeof raw === 'string') {
-      raw = raw.replace(/[\u201C\u201D\u201E\u201F]/g, '"').replace(/\uFF0C/g, ',').replace(/\uFF1A/g, ':');
-      items = JSON.parse(raw);
-    } else if (Array.isArray(raw)) {
-      items = raw;
-    }
-  } catch(e) { items = []; }
-
-  function pad(left, right) {
-    left = String(left); right = String(right);
-    return left + ' '.repeat(Math.max(1, 32 - left.length - right.length)) + right;
-  }
-
-  const time = new Date(order.created_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' });
-  const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
-
-  const lines = [];
-  lines.push('KAKALOTS');
-  lines.push('496 Anderson Dr, Quesnel BC');
-  lines.push('778-414-6789');
-  lines.push('--------------------------------');
-  lines.push('ORDER #' + String(order.order_number || ''));
-  lines.push(date + '  ' + time);
-  lines.push(order.order_type === 'pickup' ? '** PICKUP **' : '** DELIVERY **');
-  const sched = order.scheduled_time || 'ASAP';
-  lines.push(sched === 'ASAP' ? 'TIME: AS SOON AS POSSIBLE' : 'SCHEDULED: ' + sched);
-  lines.push('--------------------------------');
-  lines.push('CUSTOMER:');
-  lines.push(String(order.customer_name || ''));
-  lines.push(String(order.customer_phone || ''));
-  if (order.order_type === 'delivery' && order.delivery_address) {
-    lines.push(String(order.delivery_address));
-    if (order.delivery_postal_code) lines.push(String(order.delivery_postal_code));
-  }
-  lines.push('--------------------------------');
-  lines.push('ITEMS:');
-  if (items.length === 0) {
-    lines.push('(no items)');
-  } else {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const keys = Object.keys(item);
-      const get = (names) => { for (const k of keys) { if (names.includes(k.toLowerCase())) return item[k]; } return null; };
-      const qty = parseInt(get(['qty','quantity'])) || 1;
-      const price = parseFloat(String(get(['price']) || '0')) || 0;
-      const name = String(get(['name']) || 'Item');
-      const opts = String(get(['options','option']) || '').trim();
-      const comment = String(get(['comment']) || '').trim();
-      const desc = String(get(['description']) || '').trim();
-      lines.push(pad(qty + 'x ' + name, '$' + (qty * price).toFixed(2)));
-      if (opts) lines.push('  ' + opts);
-      if (desc) {
-        // Word-wrap description at 30 chars (2-char indent + 30 = 32 total)
-        const words = desc.split(' ');
-        let row = ' -';
-        for (const word of words) {
-          if (row.length + 1 + word.length > 32) {
-            lines.push(row);
-            row = '  ' + word;
-          } else {
-            row += (row === ' -' ? ' ' : ' ') + word;
-          }
-        }
-        if (row.trim()) lines.push(row);
-      }
-      if (comment) lines.push('  NOTE: ' + comment);
-    }
-  }
-  lines.push('--------------------------------');
-  const sub = parseFloat(order.subtotal) || 0;
-  const fee = parseFloat(order.delivery_fee) || 0;
-  const dis = parseFloat(order.discount) || 0;
-  const tax = parseFloat(order.tax) || 0;
-  const tot = parseFloat(order.total) || 0;
-  const tip = parseFloat(order.tip) || 0;
-  lines.push(pad('Subtotal:', '$' + sub.toFixed(2)));
-  if (fee > 0) lines.push(pad('Delivery Fee:', '$' + fee.toFixed(2)));
-  if (dis > 0) lines.push(pad('Promo:', '-$' + dis.toFixed(2)));
-  if (tax > 0) lines.push(pad('Tax:', '$' + tax.toFixed(2)));
-  if (tip > 0) lines.push(pad('Tip:', '$' + tip.toFixed(2)));
-  lines.push(pad('TOTAL:', '$' + tot.toFixed(2)));
-  lines.push('--------------------------------');
-  const pm = order.order_type === 'pickup' ? 'PAY AT COUNTER' : (order.payment_method === 'cash' ? 'CASH TO DRIVER' : 'CARD TO DRIVER');
-  lines.push('PAYMENT: ' + pm);
-  lines.push('--------------------------------');
-  if (order.special_instructions && String(order.special_instructions).trim()) {
-    lines.push('NOTE: ' + String(order.special_instructions));
-    lines.push('--------------------------------');
-  }
-  if (order.estimated_time) lines.push('EST. TIME: ' + order.estimated_time + ' MIN');
-  lines.push('');
-  lines.push('');
-  lines.push('');
-  lines.push('');
-  lines.push('');
-  lines.push('');
-  lines.push('');
-
-  const text = lines.join('\n') + '\n';
-  const encoder = new TextEncoder();
-  return encoder.encode(text);
-}
-
-async function sendToPrinter(data) {
-  const chunkSize = 200; // well under 512 byte limit
-  for (let i = 0; i < data.length; i += chunkSize) {
-    const chunk = data.slice(i, i + chunkSize);
-    await printerChar.writeValueWithoutResponse(chunk);
-    await new Promise(r => setTimeout(r, 100)); // wait between chunks
-  }
-}
-
-async function printTest() {
-  if (!printerChar) { log('Printer not connected', 'error'); return; }
-  log('Printing test with real data structure...', 'info');
-  // Use exact same structure as what Supabase returns
-  const testOrder = {
-    id: 'test',
-    order_number: 'TEST',
-    created_at: new Date().toISOString(),
-    order_type: 'pickup',
-    customer_name: 'Test Customer',
-    customer_phone: '778-555-0000',
-    delivery_address: null,
-    delivery_postal_code: null,
-    items: [
-      {"qty": 1, "name": "BBQ Pork Chop Suey", "price": 20.5, "options": ""},
-      {"qty": 1, "name": "Chicken Chop Suey", "price": 19.5, "options": ""}
-    ],
-    subtotal: 40,
-    delivery_fee: 0,
-    discount: 0,
-    tax: 2,
-    total: 42,
-    payment_method: 'in_store',
-    special_instructions: '',
-    estimated_time: 20
-  };
-  await printOrder(testOrder);
 }
 
 // ── UTILS ──
@@ -648,7 +678,6 @@ function log(msg, type = 'info') {
   entry.className = 'log-entry';
   entry.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
   container.insertBefore(entry, container.firstChild);
-  // Keep max 50 entries
   while (container.children.length > 50) container.removeChild(container.lastChild);
 }
 </script>
