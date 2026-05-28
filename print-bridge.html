@@ -217,14 +217,14 @@ const ESC = 0x1B;
 const GS  = 0x1D;
 const LF  = 0x0A;
 
-// Bold on/off
-const BOLD_ON  = [ESC, 0x45, 0x01];
-const BOLD_OFF = [ESC, 0x45, 0x00];
+// Printer init/reset
+const INIT = [ESC, 0x40];
 
-// Double-width + double-height (2x size)
-const SIZE_2X_ON  = [GS, 0x21, 0x11];
-// Double-width + double-height AND bold combined
-const SIZE_2X_OFF = [GS, 0x21, 0x00];
+// ESC ! n — select print mode (more universally supported than GS !)
+// bit 3 = bold, bit 4 = double-height, bit 5 = double-width
+const MODE_NORMAL      = [ESC, 0x21, 0x00]; // normal
+const MODE_BOLD        = [ESC, 0x21, 0x08]; // bold only
+const MODE_BIG_BOLD    = [ESC, 0x21, 0x38]; // bold + double-height + double-width
 
 // Align center / left
 const ALIGN_CENTER = [ESC, 0x61, 0x01];
@@ -239,19 +239,19 @@ function textBytes(str) {
 }
 
 function line(str) {
-  return [...textBytes(str), LF];
+  return [...MODE_NORMAL, ...textBytes(str), LF];
 }
 
 function boldLine(str) {
-  return [...BOLD_ON, ...textBytes(str), ...BOLD_OFF, LF];
+  return [...MODE_BOLD, ...textBytes(str), ...MODE_NORMAL, LF];
 }
 
 function bigBoldLine(str) {
-  return [...SIZE_2X_ON, ...BOLD_ON, ...textBytes(str), ...BOLD_OFF, ...SIZE_2X_OFF, LF];
+  return [...MODE_BIG_BOLD, ...textBytes(str), ...MODE_NORMAL, LF];
 }
 
 function centeredBigBoldLine(str) {
-  return [...ALIGN_CENTER, ...SIZE_2X_ON, ...BOLD_ON, ...textBytes(str), ...BOLD_OFF, ...SIZE_2X_OFF, ...ALIGN_LEFT, LF];
+  return [...ALIGN_CENTER, ...MODE_BIG_BOLD, ...textBytes(str), ...MODE_NORMAL, ...ALIGN_LEFT, LF];
 }
 
 function pad(left, right) {
@@ -275,6 +275,9 @@ function buildReceipt(order) {
   const date = new Date(order.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' });
 
   let bytes = [];
+
+  // Reset printer to known state
+  bytes.push(...INIT);
 
   // ── HEADER ──
   // KAKALOTS — enlarged + bold, centered
